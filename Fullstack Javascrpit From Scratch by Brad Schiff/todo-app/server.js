@@ -4,6 +4,12 @@ let express = require('express')
 
 let app = express()
 
+// There's no db variable that exists by default out of the box, we need to put a little bit of work to create this variable ourselves
+// We need to setup a variable that represents the mongodb database to which we opened the connection to
+// So how we establish the connection to mongodb database?
+// First we need to go to npm and pickup mongodb driver for nodejs environment
+let db
+
 // Oh wow, we now will tell express to add all form values to body object
 // And then we add that body object to the req object! cuz by default express doesn't do this... yeah like that...
 app.use(express.urlencoded({extended: false}))
@@ -70,10 +76,22 @@ app.get('/', function(req, res) {
 // In this case '/create-item', because we just wrote the code which is assuming that form will be submitted to it
 // Just to remember, we haven't explicitly created the page for create-item, it is generated buy send method as I see it right now
 // During the submition
+// Here we respond to incoming post request to /create-item url
+// This is what we do in response to user submitting the form
 app.post('/create-item', function(req, res) {
-  // item is the name we specified on input, like this we extract the value which user types in input
-  console.log(req.body.item)
-  res.send("Thanks for submitting the form.")
+  // Item is the name we specified on input, like this we extract the value which user types in input
+  // console.log(req.body.item)
+
+  // As the first argument for insertOne() method we pass an object, that is the object which is gonna be stored as a document in a db
+  // That object is where we make up properties and values
+  // But in this case we need one property which will represent the text in the to-do list item
+  // We can choose any property name we want but brad will call it text:
+  // As the second argument we will pass the function which insertOne() method will call only after successfully creating the document in db
+  db.collection('items').insertOne({text: req.body.item}, function() {
+    // This line was written outside of this function and we moved it up because we didn't want it to display asap, we wanted it to
+    // Display after the document is created in the db
+    res.send("Thanks for submitting the form.")
+  })
 })
 
 app.listen(3000)
