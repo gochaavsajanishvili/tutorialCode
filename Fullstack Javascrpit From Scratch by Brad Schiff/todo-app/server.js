@@ -1,6 +1,11 @@
 // Before installing express we typed npm init -y which created a file package.json, which keeps track
 // of all the dependencies our app needs in order to run
 let express = require('express')
+// After making available mongodb package for us to work with lets use it to open the connection to database
+// Which lives in our mongodb atlas account, we have to do it below db variable line
+// @TODO so this code didn't work without .MongoClient on stackoverflow they said we are importing the class here as well
+// Gotta figure out why so, maybe one day I will
+let mongodb = require('mongodb').MongoClient
 
 let app = express()
 
@@ -8,7 +13,41 @@ let app = express()
 // We need to setup a variable that represents the mongodb database to which we opened the connection to
 // So how we establish the connection to mongodb database?
 // First we need to go to npm and pickup mongodb driver for nodejs environment
+// The command is npm install mongodb
+// After installing it, we need to require that package like we did with express
 let db
+
+// We save connection string seperately because we don't want to make .connect method line to be too long
+// This is where we tell mongo where or what we want to connect to
+// In this case we want to connect to database which lives in our mongo db online atlas account
+// So mongodb atlas will give us a snippet of code that will include an address which points towards our database
+// And also username and password all bundled together in one big long string of text, we just include it here
+// The it will be plugged into .connect() method and it will give us access, security and permissions
+// In order to actually connect
+// In the given connectionString we replace password placeholder with our actual password which we specified in atlas
+// After pressing Connect button and before retryWrites line we have to specify the name of our database
+// To which it will be connected, we created database especially for that in Browse Collections button
+let connectionString = 'mongodb+srv://todoAppUser:123asdASD@cluster0.gurzr.mongodb.net/ToDoApp?retryWrites=true&w=majority'
+// Here we pass three arguments
+// First argument is gonna be a connection string, which tells mongodb where or what we want to connect to
+// In this case, atlas account will give us code which we will copy and paste as first arg
+// Third arg will be anon function and it will be called by .connect method after it opened the connection with first arg
+// We pass two args to our anon function, first arg lets us to check if there's any error while connecting
+// Second param client contains information about mongodb environment we just connected to 
+// To .connect() method as second arg we pass object with mongodb config property 
+mongodb.connect(connectionString, {useNewUrlParser: true}, function(err, client) {
+  // This method going to select our mongodb database
+  // And we update the global db variable as well
+  // And this is perfect, it means that we can use our global db variable means database to use anywhere
+  // In our code
+  // But we have to remember that the following line of code won't run in the millisecond we launch our node app
+  // It will run only after we successfully establish the connection with mongodb database, which could take second or two
+  // This is important because we want to be sure that our db variable is good to go before the users visit the app
+  // So lets just not tell our node app to begin listening for incoming requests until this line has had a chance to run
+  // So we place app.listen(3000) after .db() cuz now we will now for sure, it will run after our database is ready
+  db = client.db()
+  app.listen(3000)
+})
 
 // Oh wow, we now will tell express to add all form values to body object
 // And then we add that body object to the req object! cuz by default express doesn't do this... yeah like that...
@@ -93,8 +132,6 @@ app.post('/create-item', function(req, res) {
     res.send("Thanks for submitting the form.")
   })
 })
-
-app.listen(3000)
 
 // With this we will be able autoreload node each time we change something in code, finally! no need for manual reloads!
 // npm install nodemon
