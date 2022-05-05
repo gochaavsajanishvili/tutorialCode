@@ -17,6 +17,12 @@ let app = express()
 // After installing it, we need to require that package like we did with express
 let db
 
+// Okay I didn't understood much this time but from what I grasped is, that users don't have access to root folder so we placed our js for web browser
+// Into folder named public and then with the code below we allowed incoming requests to have access to that public folder
+// This is how we serve up static existing files
+// This will make the contents of that folder, available from the root of our server 
+app.use(express.static('public'))
+
 // We save connection string seperately because we don't want to make .connect method line to be too long
 // This is where we tell mongo where or what we want to connect to
 // In this case we want to connect to database which lives in our mongo db online atlas account
@@ -49,7 +55,9 @@ mongodb.connect(connectionString, {useNewUrlParser: true}, function(err, client)
   app.listen(3000)
 })
 
-// Oh wow, we now will tell express to add all form values to body object
+// We basically do the same thing as with submitted forms but now with async requests as well
+app.use(express.json())
+// Oh wow, we now will tell express to add all submitted form values to body object
 // And then we add that body object to the req object! cuz by default express doesn't do this... yeah like that...
 app.use(express.urlencoded({extended: false}))
 
@@ -106,6 +114,8 @@ app.get('/', function(req, res) {
         
       </div>
       
+      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+      <script src="/browser.js"></script>
     </body>
     </html>`)
   })
@@ -137,6 +147,15 @@ app.post('/create-item', function(req, res) {
     // Here in args we specify where we want our user to redirect, in this case we said we want to homepage, that slash means that
     res.redirect('/')
   })
+})
+
+app.post('/update-item', function(req, res) {
+  // In the next video, this is the place where we will communicate with the database to update the document
+  // For now we just console.log the users typed in data for a test, just to make sure, our server is successfully receiving the data
+
+  // This is the data that axios is sending over
+  console.log(req.body.text)
+  res.send("Success")
 })
 
 // With this we will be able autoreload node each time we change something in code, finally! no need for manual reloads!
