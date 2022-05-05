@@ -3,7 +3,8 @@ document.addEventListener("click", function(e) {
   // But as we want to only listen to click event on an Edit button, we use the following code to specify it
   // .target property here is the html element that got clicked on
   if (e.target.classList.contains("edit-me")) {
-    let userInput = prompt("Enter your desired new text")
+    // Here we added second arg to prompt to make it filled with the chosen editable element text
+    let userInput = prompt("Enter your desired new text", e.target.parentElement.parentElement.querySelector(".item-text").innerHTML)
     // To send the request to the node server on the fly (whatever that means) Brad uses axios library instead of modern browser fetch method
     // He says it's more clean and minimal
     // We import axios with cdn in this case, into our html
@@ -15,10 +16,21 @@ document.addEventListener("click", function(e) {
     // Parenthesis we include anonym function that is not going to run before the post action is complete
     // And finally in catch() parenthesis we include the anonym function which will run if the post() action runs into the problem
     // Okay now we have to receive this from the serverside, continue to server.js line 150
-    axios.post('/update-item', {text: userInput}).then(function() {
-      // do something interesting here in the next video
-    }).catch(function() {
-      console.log("Please try again later")
-    })
+    // And now, as we added id property, we not only send request to our server with info what text should be updated
+    // But also send the id of document which we want to be updated
+    // With following syntax e.target.getAttribute("attributeName") we get the value of chosen html element attribute
+    // This text and id are the names which we later use when accessing req.body for example req.body.text or req.body.id
+    if (userInput) {
+      axios.post('/update-item', {text: userInput, id: e.target.getAttribute("data-id")}).then(function() {
+        // do something interesting here in the next video
+        // As we are in our next video now, here we will write the code which will update the todo list on the fly
+        // We write it here because this function is triggered after post method is complete that means, after changes are made to database
+        // I think I got that right
+        // Yep I got it right!
+        e.target.parentElement.parentElement.querySelector(".item-text").innerHTML = userInput
+      }).catch(function() {
+        console.log("Please try again later")
+      })
+    }
   }
 })

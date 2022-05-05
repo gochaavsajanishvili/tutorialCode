@@ -6,6 +6,8 @@ let express = require('express')
 // @TODO so this code didn't work without .MongoClient on stackoverflow they said we are importing the class here as well
 // Gotta figure out why so, maybe one day I will
 let mongodb = require('mongodb').MongoClient
+// const { MongoClient, ObjectId } = require('mongodb');
+let mongodbObjectId = require('mongodb').ObjectId
 
 let app = express()
 
@@ -105,7 +107,7 @@ app.get('/', function(req, res) {
             return `<li class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
             <span class="item-text">${item.text}</span>
             <div>
-              <button class="edit-me btn btn-secondary btn-sm mr-1">Edit</button>
+              <button data-id="${item._id}" class="edit-me btn btn-secondary btn-sm mr-1">Edit</button>
               <button class="delete-me btn btn-danger btn-sm">Delete</button>
             </div>
           </li>`
@@ -149,13 +151,37 @@ app.post('/create-item', function(req, res) {
   })
 })
 
+// What we actually want to do here, is to communicate with mongodb database
 app.post('/update-item', function(req, res) {
   // In the next video, this is the place where we will communicate with the database to update the document
   // For now we just console.log the users typed in data for a test, just to make sure, our server is successfully receiving the data
 
   // This is the data that axios is sending over
-  console.log(req.body.text)
-  res.send("Success")
+  // console.log(req.body.text)
+  // res.send("Success")
+
+  // We use db to access our database, then it's collection named by us items and on that we use method findOneAndUpdate()
+  // To locate desired document and modify it
+  // We pass three args to the .findOneAndUpdate() method
+  // In first arg we tell mongodb which document we want to update
+  // In the second arg we tell mongo what we want to update in chosen document
+  // We pass object and in that object we pass to the property $set another object where we choose which document properties will be modified
+  // In this case, we only change text property and set it to user input
+  // In the third arg we include an anonym function which will be called once this database update action gets complete
+  // So we send the id of document in the first arg but mongodb works with the ids in a special way, so we cannot just pass the string of text there
+  // Instead we need to create new instance and then we gonna look inside mongodb PACKAGE (dot to look inside it) for something named ObjectId and then
+  // Parenthesis to call that and in that parenthesis, that's where we include the simple text representation of the id
+  // console.log(req.body.id)
+  // let id = new mongodbObjectId.ObjectId(req.body.id)
+  // Okay so for the first arg the Brad way new mongodb.ObjectId(req.body.id) didn't work out
+  // We had to require the ObjectId class separately but as there were solutions on stackoverflow it didn't workout
+  // Like then calling the .ObjectId() method on that newly required class
+  // We just had to simply pass the req.body.id to the newly required class like the code below to make it workout
+  // I don't know what mongodb updates or changes caused this, I have to @TODO it to figure it out
+  // But for now I'm a bit lazy and unfocused to do that, so I will leave it as is for future self 
+  db.collection('items').findOneAndUpdate({_id: new mongodbObjectId(req.body.id)}, {$set: {text: req.body.text}}, function() {
+    res.send("Success")
+  })
 })
 
 // With this we will be able autoreload node each time we change something in code, finally! no need for manual reloads!
@@ -169,3 +195,5 @@ app.post('/update-item', function(req, res) {
 // After that we run the following command
 // Here watch is the name of property we just created in package.json
 // npm run watch
+
+// npm uninstall <packageName> uninstalls the chosen package
