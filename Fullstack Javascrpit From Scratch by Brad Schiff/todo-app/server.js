@@ -108,7 +108,7 @@ app.get('/', function(req, res) {
             <span class="item-text">${item.text}</span>
             <div>
               <button data-id="${item._id}" class="edit-me btn btn-secondary btn-sm mr-1">Edit</button>
-              <button class="delete-me btn btn-danger btn-sm">Delete</button>
+              <button data-id="${item._id}" class="delete-me btn btn-danger btn-sm">Delete</button>
             </div>
           </li>`
           }).join('')}
@@ -180,6 +180,14 @@ app.post('/update-item', function(req, res) {
   // I don't know what mongodb updates or changes caused this, I have to @TODO it to figure it out
   // But for now I'm a bit lazy and unfocused to do that, so I will leave it as is for future self 
   db.collection('items').findOneAndUpdate({_id: new mongodbObjectId(req.body.id)}, {$set: {text: req.body.text}}, function() {
+    res.send("Success")
+  })
+})
+
+app.post('/delete-item', function(req, res) {
+  // Second arg is a function which runs after this database action gets complete
+  // In first arg we tell mongodb which document we want to delete
+  db.collection('items').deleteOne({_id: new mongodbObjectId(req.body.id)}, function() {
     res.send("Success")
   })
 })

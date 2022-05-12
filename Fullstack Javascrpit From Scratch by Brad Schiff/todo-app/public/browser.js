@@ -1,5 +1,20 @@
 // Okay, this line here lets us listen to any click events across the document
 document.addEventListener("click", function(e) {
+  // Delete Feature
+  if (e.target.classList.contains("delete-me")) {
+    if (confirm("Do you really want to delete this item permanently?")) {
+      // Here we no longer send userInput because for deleting the element we don't need it, we just send the id of element
+      // Which we wanna delete
+      axios.post('/delete-item', {id: e.target.getAttribute("data-id")}).then(function() {
+        // We no longer need to look for span and change it, here we just remove the entire element
+        e.target.parentElement.parentElement.remove()
+      }).catch(function() {
+        
+      })
+    }
+  }
+  
+  // Update Feature
   // But as we want to only listen to click event on an Edit button, we use the following code to specify it
   // .target property here is the html element that got clicked on
   if (e.target.classList.contains("edit-me")) {
