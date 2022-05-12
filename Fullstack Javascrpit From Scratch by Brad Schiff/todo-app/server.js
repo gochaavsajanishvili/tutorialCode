@@ -92,15 +92,18 @@ app.get('/', function(req, res) {
         <div class="jumbotron p-3 shadow-sm">
           <!-- Here we go, we specified url for form to be submitted which we just wrote logic for what to do after submition -->
           <!-- And we added post req so it gonna trigger the post method in js -->
-          <form action="/create-item" method="POST">
+          <!-- We added id so we can easily select this form from js -->
+          <form id="create-form" action="/create-item" method="POST">
             <div class="d-flex align-items-center">
-              <input name="item" autofocus autocomplete="off" class="form-control mr-3" type="text" style="flex: 1;">
+              <!-- We added id so we can easily select this input from js same as form above and gonna be with ul below -->
+              <input id="create-field" name="item" autofocus autocomplete="off" class="form-control mr-3" type="text" style="flex: 1;">
               <button class="btn btn-primary">Add New Item</button>
             </div>
           </form>
         </div>
         
-        <ul class="list-group pb-5">
+        <!-- We added id so we can easily select this ul from js -->
+        <ul id="item-list" class="list-group pb-5">
         <!-- Here we added the join method, which converts array into string of text and in its arg we can choose what will seperate each array item -->
         <!-- In this case we chose nothing -->
           ${items.map(function(item) {
@@ -141,13 +144,23 @@ app.post('/create-item', function(req, res) {
   // But in this case we need one property which will represent the text in the to-do list item
   // We can choose any property name we want but brad will call it text:
   // As the second argument we will pass the function which insertOne() method will call only after successfully creating the document in db
-  db.collection('items').insertOne({text: req.body.item}, function() {
+  
+  // We've changed req.body.item to req.body.text because now we are sending the user value async and text is the property name we chose for that
+  db.collection('items').insertOne({text: req.body.text}, function(err, info) {
     // This line was written outside of this function and we moved it up because we didn't want it to display asap, we wanted it to
     // Display after the document is created in the db
     // We changed this send line to redirect because after submitting the form we want to automatically go back homepage and see the result immediately
     // res.send("Thanks for submitting the form.")
     // Here in args we specify where we want our user to redirect, in this case we said we want to homepage, that slash means that
-    res.redirect('/')
+    
+    // Now once the database action completes instead of res.redirect('/') redirecting the browser back to the homepage for a full page reload
+    // We just send back the message of success
+
+    // Now we gonna use json, it stands for javascript object notation, it is very popular way of sending data back and forth
+    // Our goal here is to send new js object which represents the mongodb document we just created
+    // We can look inside the new info param and it contains the array named ops[0] and if we look inside that array for first item
+    // That will be a js object which represents the new document that just got created
+    res.json({_id: info.insertedId.toString(), text: req.body.text})
   })
 })
 
