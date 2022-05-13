@@ -8,6 +8,23 @@ function itemTemplate(item) {
 </li>`
 }
 
+// Initial Page Load Render
+// Woow, now this chunk of code really impressed me, how everything interconnected
+// So we can use items array in this file because it is declared in the <script> before we insert this file into html
+// Here we mapped through items and then used our previously created itemTemplate() function which took the data from
+// Mapped array and inserted it to proper places
+// Then we rendered it
+// Oh wow, I'm still so impressed I might not be able to completely grasp this idea now cuz of emotions, but it definitely
+// Motivated me to study harder
+// I remember now, why I fell in love with programming
+// It truly is magic
+// How we connected the previously built itemTemplate() function to this new chunk of code is what sparked a light in me rn
+// Now I even want to build the library or even framework, so ppl can connect to my functions xDDDD
+let ourHTML = items.map(function(item) {
+  return itemTemplate(item)
+}).join('')
+document.getElementById("item-list").insertAdjacentHTML("beforeend", ourHTML)
+
 // Create Feature
 // We will need work with input element more than once so instead of repeatedly selecting that element
 // We will create the variable that will point towards it and then we can reuse that variable

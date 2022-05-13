@@ -106,6 +106,7 @@ app.get('/', function(req, res) {
         <ul id="item-list" class="list-group pb-5">
         <!-- Here we added the join method, which converts array into string of text and in its arg we can choose what will seperate each array item -->
         <!-- In this case we chose nothing -->
+        <!-- 
           ${items.map(function(item) {
             return `<li class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
             <span class="item-text">${item.text}</span>
@@ -115,10 +116,24 @@ app.get('/', function(req, res) {
             </div>
           </li>`
           }).join('')}
+        -->
         </ul>
         
       </div>
       
+      <!-- Here we are sending the raw data to the web browser to implement client-side rendering, instead of generating html of our dynamic -->
+      <!-- Data on server side and then sending that html to web browser, instead of that with client-side rendering, the server will send -->
+      <!-- To browser only raw data, in this case our array named items, and then it would be up to web browser or client to use that data -->
+      <!-- To generate the appropriet HTML -->
+      <!-- Web browser has built-in object named json - javascript object notation - super popular way of sending data back on forth  -->
+      <script>
+        // We look inside the json object with the method stringify and it will convert the javascript data or json into string of text
+        // Into array of objects to be more specific 
+        // So within the parenthesis we just let it know which data we want to convert
+        // We pass items because that's our array of database objects or database documents 
+        let items = ${JSON.stringify(items)}
+      </script>
+
       <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
       <script src="/browser.js"></script>
     </body>
@@ -160,6 +175,10 @@ app.post('/create-item', function(req, res) {
     // Our goal here is to send new js object which represents the mongodb document we just created
     // We can look inside the new info param and it contains the array named ops[0] and if we look inside that array for first item
     // That will be a js object which represents the new document that just got created
+    // @TODO Here should be res.json(info.ops[0]) but I had to change the code to this because after update of mongodb from 3x to 4x
+    // It seems info wasn't returning property ops anymore, only acknowledged and insertedId
+    // acknowledged - Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined
+    // insertedId - The identifier that was inserted. If the server generated the identifier, this value will be null as the driver does not have access to that data
     res.json({_id: info.insertedId.toString(), text: req.body.text})
   })
 })
