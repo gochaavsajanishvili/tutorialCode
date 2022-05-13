@@ -9,6 +9,11 @@ let mongodb = require('mongodb').MongoClient
 // const { MongoClient, ObjectId } = require('mongodb');
 let mongodbObjectId = require('mongodb').ObjectId
 
+// We installed the following package by running npm install sanitize-html
+// And we will use it to make sure that the value users enter into our input fields is exactly that, what we expect
+// From them and not some malicious scripts to cause security nightmare
+let sanitizeHTML = require('sanitize-html')
+
 let app = express()
 
 // There's no db variable that exists by default out of the box, we need to put a little bit of work to create this variable ourselves
@@ -63,6 +68,54 @@ app.use(express.json())
 // And then we add that body object to the req object! cuz by default express doesn't do this... yeah like that...
 app.use(express.urlencoded({extended: false}))
 
+function passwordProtected(req, res, next) {
+  // When visting home page we want user to enter username and password before entering our website
+  // Here in res.set() method in first arg we pass the string of text which tells asks the browser
+  // A username and password to authenticate itself
+  // As for second arg we basically provide the name of our application
+  res.set('WWW-Authenticate', 'Basic realm="Simple Todo App"')
+  // Here we log out to console whatever has user typed in as a username and password
+  // It is encoded into base 64 code format, we can leverage that in terms of what we check for
+  // To see if they typed in the correct username and password
+  // Oh wow now I'm getting a glimpse of how registering works
+  // Okay so here's what happens here, we type something in prompted fields and req.headers.authorization
+  // turns it into base 64 code format, we log it out to console, copy that and place into if statement
+  // Condition, that means now we have set the username and password required to enter the website
+  // The condition will render true only after visitor typed in the username and pass we set in as base 64 code format
+  console.log(req.headers.authorization)
+  // Here as the condition we say, only if the username and password that the visitor enters equals something specific
+  // Only then we run the function by calling next() that sends them to the home page
+  // With req.headers.authorization we access the username and password that visitor typed in
+  if (req.headers.authorization == "Basic YWRtaW46YWRtaW4=") {
+    next()
+  } else {
+    // But if they didn't enter the correct username and password then lets send back the error message
+    // With res.status(401) we send back the http code of 401 which means unauthorized
+    res.status(401).send("Authentication required")
+  }
+
+  // When user visits certain url and accordingly calls this function, when it is done
+  // The next() function will tell express that we are done here, move up to the next function
+  // next()
+}
+
+// This way we tell express to use function passwordProtected to all routes means all app.get and app.post-s
+// So it's going to be added as a function to all our urls and when our custom function calls next()
+// That will call whatever the next function for that route would be
+app.use(passwordProtected)
+
+// Express is a framework we are using to create web applications with node
+// Express offers this basic syntax either app.get or app.post and for the first arg
+// You spell out the url you're listening for and the second arg is function that we provide
+// That express will call when the request happens
+// We were familiar with that, but we weren't familiar with that we can provide multiple functions here
+// Now we are giving here three args, but if we wanted to we can give 5 or 10 arguments
+// The idea that after we provide the url we are listening for, we can provide multiple functions
+// And express will call each function, one at a time in a row
+// That where comes the next() function above the code 
+// app.get('/', passwordProtected, function(req, res) we removed the function passwordProtected from args
+// To make it more efficient and not add the protection to each route separately but to declare a line which
+// Will tell express to use passwordProtected function for all routes, check line 100 or below it it's app.use(passwordProtected)
 app.get('/', function(req, res) {
   // Brad promised that we won't do this anymore :d
   // We don't want to display/send this html as soon as user sends request anymore, we now want to connect to database before it
@@ -150,7 +203,23 @@ app.get('/', function(req, res) {
 // During the submition
 // Here we respond to incoming post request to /create-item url
 // This is what we do in response to user submitting the form
+
+// Now we will implement the security here to prevent users entering malicious scripts into our code
+// We will do it to req.body.text
 app.post('/create-item', function(req, res) {
+  // The first arg here is the text or the input which we cleanup or sanitize
+  // So that will be our user input, in this case, req.body.text, whatever user typed in
+  // And as a second argument this is where we include a few options
+  // So we include a javascript object
+  // This package has one option named allowedTags and we set it to empty square brackets means empty array
+  // Because we don't want to allow any html tags
+  // Then we add another option allowedAttributes and set it to empty object
+  // This way we don't allow any html tags or attributes
+  // So now whatever user typed in will be stored to this safeText variable @TODO Brad called it property, gotta figure out why
+  // And it's only going to be a plain, cleaned up text, nothing evil or malicious, so that's what we want to save into a database
+  // So into insertOne() method get rid of req.body.text and add this safeText variable
+  let safeText = sanitizeHTML(req.body.text, {allowedTags: [], allowedAttributes: {}})
+
   // Item is the name we specified on input, like this we extract the value which user types in input
   // console.log(req.body.item)
 
@@ -161,7 +230,12 @@ app.post('/create-item', function(req, res) {
   // As the second argument we will pass the function which insertOne() method will call only after successfully creating the document in db
   
   // We've changed req.body.item to req.body.text because now we are sending the user value async and text is the property name we chose for that
-  db.collection('items').insertOne({text: req.body.text}, function(err, info) {
+  
+  // req.body.text is what users are entering and is what might be potentially malicious, so thats what we gonna sanitize before we insert it
+  // To database
+  // We removed here from .insertOne({text: req.body.text}) the req.body.text and instead of it added the plain, safe, sanitized user input
+  // With safeText variable and that protects our current create-item route
+  db.collection('items').insertOne({text: safeText}, function(err, info) {
     // This line was written outside of this function and we moved it up because we didn't want it to display asap, we wanted it to
     // Display after the document is created in the db
     // We changed this send line to redirect because after submitting the form we want to automatically go back homepage and see the result immediately
@@ -179,12 +253,16 @@ app.post('/create-item', function(req, res) {
     // It seems info wasn't returning property ops anymore, only acknowledged and insertedId
     // acknowledged - Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined
     // insertedId - The identifier that was inserted. If the server generated the identifier, this value will be null as the driver does not have access to that data
-    res.json({_id: info.insertedId.toString(), text: req.body.text})
+    // Had to change text: req.body.text to safeText here to sanitize it, or otherwise the malicious code was slipping through in browser, not
+    // To database but in browser js, Brad didn't had to do this because he had this info.ops[0] option
+    res.json({_id: info.insertedId.toString(), text: safeText})
   })
 })
 
 // What we actually want to do here, is to communicate with mongodb database
 app.post('/update-item', function(req, res) {
+  // So we do sanitize it in here too, because user can press edit button and enter the malicious code from there
+  let safeText = sanitizeHTML(req.body.text, {allowedTags: [], allowedAttributes: {}})
   // In the next video, this is the place where we will communicate with the database to update the document
   // For now we just console.log the users typed in data for a test, just to make sure, our server is successfully receiving the data
 
@@ -211,7 +289,9 @@ app.post('/update-item', function(req, res) {
   // We just had to simply pass the req.body.id to the newly required class like the code below to make it workout
   // I don't know what mongodb updates or changes caused this, I have to @TODO it to figure it out
   // But for now I'm a bit lazy and unfocused to do that, so I will leave it as is for future self 
-  db.collection('items').findOneAndUpdate({_id: new mongodbObjectId(req.body.id)}, {$set: {text: req.body.text}}, function() {
+
+  // Here we changed $set: {text: req.body.text} to $set: {text: safeText} to clean sanitized version of user input
+  db.collection('items').findOneAndUpdate({_id: new mongodbObjectId(req.body.id)}, {$set: {text: safeText}}, function() {
     res.send("Success")
   })
 })
