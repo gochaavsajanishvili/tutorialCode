@@ -24,6 +24,13 @@ let app = express()
 // After installing it, we need to require that package like we did with express
 let db
 
+// Making port number dynamic for heroku
+let port = process.env.PORT
+// We provide fallback if above code doesn't work
+if (port == null || port == "") {
+  port == 3000
+}
+
 // Okay I didn't understood much this time but from what I grasped is, that users don't have access to root folder so we placed our js for web browser
 // Into folder named public and then with the code below we allowed incoming requests to have access to that public folder
 // This is how we serve up static existing files
@@ -59,7 +66,7 @@ mongodb.connect(connectionString, {useNewUrlParser: true}, function(err, client)
   // So lets just not tell our node app to begin listening for incoming requests until this line has had a chance to run
   // So we place app.listen(3000) after .db() cuz now we will now for sure, it will run after our database is ready
   db = client.db()
-  app.listen(3000)
+  app.listen(port)
 })
 
 // We basically do the same thing as with submitted forms but now with async requests as well
@@ -317,3 +324,50 @@ app.post('/delete-item', function(req, res) {
 // npm run watch
 
 // npm uninstall <packageName> uninstalls the chosen package
+
+// We are now starting to upload our app to net to make it globally available for friends and family so the first steps are, we install git
+// Check with cmd or terminal the availability of it with > git --version command
+// Next we need to give git a basic information
+// So now we type > git config --global user.name "Gocha" no need to give real name, we can give anything but well I chose mine
+// And > git config --global user.name "youremail@mail.com"
+// heroku.com free hosting company, industry standard for beginners or at least Brad said it is
+// On heroku we press New App and then we have to install heroku CLI which stands for Command Line Interface
+// We download the preffered OS installer and install with all the default options
+// Once we istall it, our next step is to connect our cmd to our heroku account
+// So the tool we just installed gave us access to heroku commands
+// We type > heroku login
+// On windows we need to restart to make heroku commands available in our cmd, goddammit windows :d
+// Also during login on windows it sends us to browser where we simply press login button and if we were logged in on website already, it
+// Will log us in automatically, without need to enter pass
+// Okay after that our command line is logged in to our heroku account, this means now we can send our application files to heroku
+// But first we need to create new file in our apps main folder, that tells heroku which one of our files is main file that powers our app
+// We know that it's server.js but heroku cannot read our mind
+// We create file named Procfile (no need for extension)
+// We type in the file > web: node server.js
+// So that just tells heroku that when it's time to launch or start our application that line is what it needs to do
+// Now we need to make our app.listen(3000) port number dynamic, cuz it makes sense when it runs on our local computer
+// But we don't know which port will heroku use, so that's why
+// So we will add after let db and before listening to port code the line let port = process.env.PORT
+// We also provide fallback if there is no port number and set it to 3000 so that way in any environement, our port number will make sense
+// After that we replace in app.listen(3000) the number with our port variable app.listen(port)
+// Now we need to prepare git so it is ready to send our files to heroku
+// to do that in cmd we type > git init
+// Okay after typing that we turned our folder into empty git repository, Brad is now creating .gitignore, I already have connected
+// This folder to github, lets see how it will go for heroku, it is not tracking all file rn because there are no changes in all of them
+// Hmm, Brad only excluded node_modules in gitignore, left package-lock.json, but I have it excluded, lets see how it goes
+// We now type in cmd > git add -A
+// This adds all files to git
+// Now we want to commit files into git so we type > git commit -m 'Deploying App To Heroku'
+// The message can be anything btw
+// Hmm, it does seem that this operations yet doesn't affect my connection with github, not M symbol nor U symbol infront of Procfile changed
+// Maybe that's because this way we are acting in empty git repository? It was written when I typed git init
+// Okay anyway now our git repository is ready to roll on our local computer, now we just need to push it up or send it out to heroku
+// We type command > heroku git:remote -a todoappforga
+// after -a we type in the name of app we previosly named from heroku website interface it's gonna be different every time
+// Now we type final command > git push heroku master
+// By bein familiar with git it usually is git push origin master where origin typically being github or bitbucket in this case instead of origin
+// We push our master branch to heroku
+// And yeey it succeeded!
+// In this case we go to heroku.com/apps/ourappname/deploy/heroku-git and press on Open app button which takes us to url which
+// Also was specified in cmd after the previous command and that's where our app resides now, up and running!
+// And package-lock.json wasn't needed on heroku!
