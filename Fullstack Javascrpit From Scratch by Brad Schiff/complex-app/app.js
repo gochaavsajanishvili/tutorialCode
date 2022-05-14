@@ -10,6 +10,18 @@ const express = require('express')
 // After importing express we turn it on with following code
 const app = express()
 
+// Here we require our newly created router.js file, we type ./ which means to look inside our current folder or directory and viola, the console.log()
+// Is executed immediately, that means that we successfully executed code from a separate file
+// Also, in case of packages we just type name, but when we import our files, we need to specify the path which points to chosen file 
+// We can also give the extension here but it's not required
+// require() function does two things, number one, it executes the file, number two, it also returns, whatever that file exports
+// That's why we wrote module.exports there, nodejs knows what does it mean, it's under lookout for that special variable
+// And whatever it will be set equal to, will be returned whenever we require the file in
+// So when we require the file, it will be executed immediately and whatever we export, that will be stored in a given variable
+// And we can use it, wherever and whenever we see fit
+// We can export any data type, the variable where we save export of required file literally equals to the contents of what was exported
+const router = require('./router')
+
 // Here we tell express to make the public folder accessible here
 app.use(express.static('public'))
 // Here we configure our express application to be able to render views from views folder
@@ -28,6 +40,9 @@ app.set('view engine', 'ejs')
 
 // Now we will tell our app what it should do if it receives a get request to the base url
 // I will try using arrow functions instead of anonym functions here, it's time to get bolder after 8+ hours in tutorial :d
+// We no longer need this chunk of code because we will now be exporting it from new routers file that we've just set up
+// And btw arrow functions work like piece of cake
+/*
 app.get('/', (req, res) => {
   // From here we want to render the template, to do that we have to configure our express application a bit
   // After configuring it and specifying the template engine that we will use, instead of using res.send(`htmlCodeHere`) we will now use
@@ -35,6 +50,17 @@ app.get('/', (req, res) => {
   // We do not need to include .ejs there when referencing the template
   res.render('home-guest')
 })
+*/
+
+// Here we tell to our overall express application to use the that new router that we set up
+// For first arg we tell it which url to use this router for, in this case we want overall or the base router
+// For the second arg we write the router we want to use, so we just say router because that is the name of the variable
+// That imports our file, that will be what that file is exporting
+// console.log(router)
+// So we declare here the listening for the base url but as I get it, for other urls we don't need to declare it here, we will
+// Specify or list them in routers file, this was just the starting point and we needed to export router variable from router.js
+// To make it usable here
+app.use('/', router)
 
 // Now we will tell our app to begin listening to incoming requests
 app.listen(3000)
@@ -62,4 +88,13 @@ app.listen(3000)
 // It seems that in following tutorial we will move routes to separate file as well, as their number grows to make them
 // Easier to manage, we don't want to clutter up this main app.js file, (even though it already is, cuz of my comments :d)
 // With larger projects organization becomes more and more important, so we want to start creating separate files with distinct responsibilities
-// With that in mind we will now learn how to create something that is named router, setting up a router, is essential part of staying organized 
+// With that in mind we will now learn how to create something that is named router, setting up a router, is essential part of staying organized
+// A router has the responsibility of listing out the urls or routes that you want to listen for and then say what should happen for each of this routes
+// So anytime we're writting app.get() or app.post(), we are defining a route, so we want to keep all of those, within a router, the idea is to stay
+// Organized, so we keep all of our routes in a separate file and that's the only responsibility of that file, it's just the router
+// So we create new file in the root of our project folder, named router.js, technically we can name it anything though
+
+// Before we learn how to set routes we want to learn how we let one javascript file communicate with another, or let one js file share code with another
+// It's just a basic nodejs skill of how to share code from one file to another, cuz we want to write code in our router.js and then leverage it in app.js
+// We know that we can use require() to load in or import in or require a package, so we know that we can use require() with packages we didn't create
+// But we can also use require() to pull in javascript files that we did create
