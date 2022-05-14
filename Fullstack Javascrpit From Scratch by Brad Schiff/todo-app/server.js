@@ -29,7 +29,7 @@ let db
 let port = process.env.PORT
 // We provide fallback if above code doesn't work
 if (port == null || port == "") {
-  port == 3000
+  port = 3000
 }
 
 // Okay I didn't understood much this time but from what I grasped is, that users don't have access to root folder so we placed our js for web browser
