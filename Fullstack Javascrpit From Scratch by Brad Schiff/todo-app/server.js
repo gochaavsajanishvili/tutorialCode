@@ -25,6 +25,7 @@ let app = express()
 let db
 
 // Making port number dynamic for heroku
+// @TODO Okay so after adding this, means making port dynamic app doesn't run on localhost anymore, it works fine on heroku though
 let port = process.env.PORT
 // We provide fallback if above code doesn't work
 if (port == null || port == "") {
