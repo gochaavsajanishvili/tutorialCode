@@ -29,7 +29,14 @@ exports.register = (req, res) => {
   // Within parenthesis we have to pass here form field values that visitor just submitted
   let user = new User(req.body)
   user.register()
-  res.send("Thanks for trying to register!")
+  // Any value other than 0 evaluates to true so if there are any errors we will send them back to the user here
+  // In the future we will set things up so that controller won't even need to have this basic logic of checking the errors array
+  // Ideally even this sort of logic should be left to model, not to controller 
+  if (user.errors.length) {
+    res.send(user.errors)
+  } else {
+    res.send("Congrats, there are no errors.")
+  }
 }
 
 // This is the function which gonna be called when some1 visits the base url
