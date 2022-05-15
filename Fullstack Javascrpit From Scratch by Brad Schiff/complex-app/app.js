@@ -22,6 +22,13 @@ const app = express()
 // We can export any data type, the variable where we save export of required file literally equals to the contents of what was exported
 const router = require('./router')
 
+// This tells express to add user submitted data onto our req object so we can then access it from req.body
+// So now our application accepts the two most common ways of submitting data on the web
+// A traditional html form submit
+app.use(express.urlencoded({extended: false}))
+// And also just sending over a bit of json data
+app.use(express.json())
+
 // Here we tell express to make the public folder accessible here
 app.use(express.static('public'))
 // Here we configure our express application to be able to render views from views folder
@@ -118,3 +125,24 @@ app.listen(3000)
 // And the controller needs to convert that input into appropriate commands for our models and views so controller is something like middleman
 // Depending on icoming request, the controller will call appropriate model with the appropriate business logic and rules that we want to enforce
 // On the data and once that's done the controller will call appropriate view and pass it any relevant dynamic data from the model
+
+// Before we create user model file that says what a user should be, lets sure first make sure that our user controller can successfully access
+// The form data that gets submitted, so now we gonna configure the express app so we can easily access user's submitted data
+
+// Model is where we define the structure of our data, for our user data, we will describe what a user should be
+// From programming or javascript perspective, what would a model be? There are many different ways we can set up a model
+// But if we really think about it when we ask ourselves what should user be, we are probably going to answer that question by using
+// Nouns and verbs and you know what lines up nicely with nouns and verbs in a javascript world? An object
+// Just like nouns and verbs an object has properties and methods
+
+// Now in a model we in this case our user model we don't want to create an object as much as we want to create a blueprint or a cookie cutter
+// Mold for an object, we can achieve that by using constructor function, we can set up a constructor function that spells out all of the properties
+// And methods that a user object should have and we can keep that constructor function in a separate file that will be our user model
+// Then within our user controller we can simply import or require in that model file and use it as a blueprint to create a new user object
+// Specific to the current request and user submitted data
+
+// All of the logic that checks the incoming data for validaton errors and all of the code that makes up a blueprint of what a user should be
+// That will leave in a separate user model file
+
+// In the root folder we create new subfolder named models and in the models folder we create files with first letter uppercase for example for user model
+// We will create User.js
