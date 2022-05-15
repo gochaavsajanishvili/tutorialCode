@@ -98,3 +98,23 @@ app.listen(3000)
 // It's just a basic nodejs skill of how to share code from one file to another, cuz we want to write code in our router.js and then leverage it in app.js
 // We know that we can use require() to load in or import in or require a package, so we know that we can use require() with packages we didn't create
 // But we can also use require() to pull in javascript files that we did create
+
+// We cannot trust visitors to enter valid information into given form, on the server side we need to make sure they not leave any of the fields blank
+// We need to make sure their password contains enough characters for security reasons, we need to make sure they've entered valid email address
+// We need to make sure their username doesn't contain any weird or strange characters, we need to make sure both username and email are unique
+// and not already in use and etc
+// In the name staying organized we don't want to include all of that business logic and data modeling in our controller, instead we want to keep 
+// The code that enforces all of the rules described above, in a separate file, so the controller doesn't become bloated
+
+// In model we include all of the business logic, or all of the rules that we want to enforce on our data
+// For example:
+// Users username must be unique
+// The password must be at least 12 characters long and etc.
+// Essentially the model is where we model our data
+
+// Views is our html template or view file, it's just html that users will see in their web browser
+
+// It's the responsibility of controller to accept input, in this case network requests to our different routes
+// And the controller needs to convert that input into appropriate commands for our models and views so controller is something like middleman
+// Depending on icoming request, the controller will call appropriate model with the appropriate business logic and rules that we want to enforce
+// On the data and once that's done the controller will call appropriate view and pass it any relevant dynamic data from the model
