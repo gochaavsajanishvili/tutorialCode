@@ -11,6 +11,30 @@ let User = function(data) {
   this.errors = []
 }
 
+User.prototype.cleanUp = function() {
+  // Here we check if user while submitting username submits anything other than string
+  // This way we completely ignore whatever non-string value was attempted to be set
+  // Instead we set it to completely safe empty string and from there our other validation rules take care of it
+  // It will catch that the username is blank and say that user must provide a username
+  // Aand we do same for all other input values as well
+  if (typeof(this.data.username) != "string") {this.data.username = ""}
+  if (typeof(this.data.email) != "string") {this.data.email = ""}
+  if (typeof(this.data.password) != "string") {this.data.password = ""}
+
+  // Now we will set the things up that if req will have any bogus (funny word) properties other than this three: username, email and password
+  // We would want to ignore those other properties
+  // This way we are cleaning up or purifying our data property, by manually updating the data with properties we actually want
+  // Now we will clean it up even further by adding trim method, which will get rid of any empty spaces at the beginning or end of the value
+  // Also we add toLowerCase() which turns string chars all to lowercase
+  // We do same for email BUT, we do not want to do same for password cuz well we want to respect users wish to add spaces to it
+  // Or play with the case :d cuz they both are valid parts of password
+  this.data = {
+    username: this.data.username.trim().toLowerCase(),
+    email: this.data.email.trim().toLowerCase(),
+    password: this.data.password
+  }
+}
+
 // We moved validation of user input here instead of putting it into register method in order to stay organized
 User.prototype.validate = function() {
   if (this.data.username == "") {this.errors.push("You must provide a username.")}
@@ -40,6 +64,7 @@ User.prototype.validate = function() {
 User.prototype.register = function() {
   // Step #1: Validate user data | This is where we check to make sure that none of the fields are empty and also that the values make sense
   // In the name of organization we moved away the validation method and just called it here
+  this.cleanUp()
   this.validate()
   // Step #2: Only if there are no validation errors then save the user data into a database
   // We want to permanently store users username email and password so we can later reference it when user tries to login in the future
