@@ -108,3 +108,7 @@ async function() {
 }
 There's no guarantee which one will finish first, but in situations where the ordering of actions isn't important this will definitely be the fastest way to handle things, as now the promises aren't blocking each other; they will all begin working at the same time (or within a few milliseconds of each other) and will complete as soon as possible (regardless or order).
  */
+
+// Now about hashing passwords, hashing a value means converting a value into a different value, the reason that this is a good idea is that
+// Hashing is not the same thing as encrypting, when you encrypt a value that implies that it can be decrypted, encryption and decryption
+// Is a two way street, however hashing a value is a one way street

@@ -3,6 +3,7 @@
 // So whatever the this keyword was set to outside of this function is what it will still be equal
 // @TODO I got the sense of why it wasn't working but haven't yet completely realized, gotta find out sometime another
 
+const bcrypt = require('bcryptjs')
 // This going to return the database object so we look inside it with .collection() and choose the collection we want in this file
 // To work with, oh wooow, I'm impressed again, omg, I have shivers
 // Awesome, now we have this variable usersCollection on which we can perform CRUD operations on
@@ -53,7 +54,8 @@ User.prototype.validate = function() {
   if (!validator.isEmail(this.data.email)) {this.errors.push("You must provide a valid email address.")}
   if (this.data.password == "") {this.errors.push("You must provide a password.")}
   if (this.data.password.length > 0 && this.data.password.length < 12) {this.errors.push("Password must be at least 12 characters")}
-  if (this.data.password.length > 100) {this.errors.push("Password cannot exceed 100 characters.")}
+  // Because bcrypt had a max limit value in the past and may not have now, we still change the max value to 50 in any case
+  if (this.data.password.length > 50) {this.errors.push("Password cannot exceed 50 characters.")}
   if (this.data.username.length > 0 && this.data.username.length < 3) {this.errors.push("Username must be at least 3 characters")}
   if (this.data.username.length > 30) {this.errors.push("Username cannot exceed 30 characters.")}
   
@@ -106,7 +108,12 @@ User.prototype.login = function() {
       // Why arrow functions weren't working here properly, I wrote about it in the beginning of file
       // So if below condition is true, that means that user has typed in correct username and password, it matches something
       // In our existing database
-      if (attemptedUser && attemptedUser.password == this.data.password) {
+
+      // Okay, now that we are hashing our passwords, this won't work anymore, so we gotta change it, we delete
+      // attemptedUser.password == this.data.password part which was after AND operator and now we gonna use
+      // bcrypt package, in compareSync() method we give it two args, first is gonna be a password that user just typed in
+      // That will be something that is not already hashed and the second value will be the hashed value from the database
+      if (attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
         // We want to send res.send() here, but it's not job of our model to send back response for that route
         // That is the job of our controller
         // We set it up in our controller, so this function will be called after database action is complete
@@ -134,6 +141,13 @@ User.prototype.login = function() {
 // We will first validate their username, email and password values or in other words we will want to enforce all of our business logic
 
 // This is what our userController is going to call, when some1 submits the user registration form
+
+// This is where we gonna hash our passwords, seems pretty obvious isn't it? :d
+// But before that we need to install package for it from NPM so the command for it is > npm install bcryptjs
+// It is very popular hashing package in the js world
+// We will require it in the start of the file
+// There is no sense wasting our servers processing power converting a password into a hash unless there is no validation errors
+// With the user's inputed data, so that's why we will dive into our if statement
 User.prototype.register = function() {
   // Step #1: Validate user data | This is where we check to make sure that none of the fields are empty and also that the values make sense
   // In the name of organization we moved away the validation method and just called it here
@@ -145,6 +159,17 @@ User.prototype.register = function() {
 
   // Here we will check if there are any validation errors, with length it will evaluate to true if there are errors so we check opposite of that
   if (!this.errors.length) {
+    // Hash user password
+    // Using bcrypt is a two step process, so first we want to create something called a salt
+    // I have no idea what this salt thing is but Brad says that once we've generated the salt, now we can generate the hash
+    let salt = bcrypt.genSaltSync(10)
+    // Now we want to overwrite user's password value
+    // We give this hashSync() method two args, the first arg is a value that I wanna hash, so it will be a data user just typed in
+    // And the second arg will be our salt value, now we are good to go, I guess this salt thing is into how many charactered hash
+    // Will users password converted, but lets see how it will go, cuz this.data is what is stored into database and we just updated
+    // The password value of that data
+    // Okay no, salt doesn't means number of characters in the hash version of users pass :d k @TODO find out what is salt
+    this.data.password = bcrypt.hashSync(this.data.password, salt)
     // If there are no errors we want to add or insert new document into the database collection in this case users
     // Within this parenthesis we want to give an object that we would want to save as a document, in this case we just type following
     // Because with above methodes we've already cleaned up and validated that data, we know that below line is only going to run
