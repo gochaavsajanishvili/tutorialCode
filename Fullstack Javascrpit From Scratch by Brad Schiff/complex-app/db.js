@@ -112,3 +112,11 @@ There's no guarantee which one will finish first, but in situations where the or
 // Now about hashing passwords, hashing a value means converting a value into a different value, the reason that this is a good idea is that
 // Hashing is not the same thing as encrypting, when you encrypt a value that implies that it can be decrypted, encryption and decryption
 // Is a two way street, however hashing a value is a one way street
+
+// HTTP requests are stateless - That's really just a fancy way of saying that each request is ran without any knowledge of the requests that
+// Came before it, so the question is, how can we solve this case of amnesia that a browser and server have or after the user submits the valid
+// Username and password into login form, how can the server trust subsequent requests from that browser, so there are two primary technologies
+// That can solve this issue of identifying or trusting subsequent requests
+// The first technology is sessions
+// The second technology is tokens
+// We start with sessions, so we go to NPM and pickup a package for it, the command is > npm install express-session

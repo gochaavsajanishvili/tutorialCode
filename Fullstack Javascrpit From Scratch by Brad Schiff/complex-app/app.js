@@ -7,8 +7,33 @@
 // Now we can use express
 // We now declare variables which we shouldn't ever change as const to prevent bugs
 const express = require('express')
+const session = require('express-session')
 // After importing express we turn it on with following code
 const app = express()
+
+// We need to spell out a few configuration options for how we want to use sessions, lets create variable, we can call it anything but Brad uses
+// Following name, so here we leverage that package, within parenthesis we want to provide an object
+// Now we provide a few different properties or options
+let sessionOptions = session({
+  // No matter what we include here it just has to be something that someone couldn't guess
+  // Brad said, these are just boring configuration options that are not worth memorizing
+  // It's just boilerplate configuration code that we would only ever need to write once and then just reference again for future projects
+  // This completes our configuration or settings to enable sessions
+
+  secret: "JavaScript is soooooooo coool",
+  resave: false,
+  saveUninitialized: false,
+  // We set cookie to object because it should have several subproperties
+  // maxAge property is how long the cookie for a session should be valid before it expires, it is measured in milliseconds
+  // So to calculate it we could write following 1000 * 60 * 60 * 24 <<< this represents one day, milliseconds * seconds * minutes *  hours
+  
+  // With cookies server is identifying unique web browser or visitor or request
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, httpOnly: true}
+})
+
+// Now we will tell express to actually use sessions, cool, now our express app supports sessions
+app.use(sessionOptions)
 
 // Here we require our newly created router.js file, we type ./ which means to look inside our current folder or directory and viola, the console.log()
 // Is executed immediately, that means that we successfully executed code from a separate file
@@ -153,3 +178,8 @@ module.exports = app
 
 // Okay so we will create a separate file for a database connection which will be responsible only for that, so then we can reuse it everywhere
 // The file will be db.js
+
+// app.js is our top level file, where we are requiring the express framework, we are enabling different features, we are setting the directory
+// For our views and etc. 
+// For detailed intro comment about sessions and tokens, visit db.js
+// Here in this file we will enable sessions as well

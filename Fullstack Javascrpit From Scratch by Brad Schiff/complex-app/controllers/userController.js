@@ -35,6 +35,37 @@ exports.login = (req, res) => {
   user.login().then(function(result) {
     // We want to send response back to the web browser, and we can receive whatever value the promise resolved with by including param
     // Within anonym function's parenthesis, we can call it anything but lets just call it result
+
+    // So if some1 types the correct username and password we would want to log them in, or in other words this is where we would want to
+    // Leverage sessions, after typing req.session now we can add new properties on to this session object, lets make up a property named user
+    // There is nothing special about that word, Brad has just made it up, this could be literally anything, the idea is that our request object
+    // Now has this session object that is unique per browser visitor, so we gonna add new property user to that session object and set it equal to
+    // An object, now in this object we can store any information we want and it will be specific to that one visitor or web browser
+    // So we could make up all sorts of different properties, we could say {favColor: "blue", username: user.data.username}
+    // Whole idea of a session is that it allows us to have some sort of persistent data from one request to another
+    // Meaning, that our server is going to remember this session data, in other words, we could use this session data
+    // From any of our urls or routes
+    // So when visitor types in correct username and password values meaning below code ran, two things happened
+    // Number 1: Our server is going to store this session data in memory
+    // Number 2: What the session package is also going to do is send instructions to the web browser to create a cookie
+    // To see cookie, in chrome go to webpage, right click and click inspect, find Application tab, it might be hidden under
+    // Extra arrows there and there we go, within left hand sidebar under Storage we see an area named cookies
+    // If we expand our cookies option we see current domain, in this case localhost:3000, if we click it we will see all of the cookies
+    // For given domain, in this case only one, so our session package sent instructions to the browser to create a cookie with the name
+    // Of connect.sid and this is the important part, it has a unique value, now that value is unique identifier for that particular
+    // Session data, that's being stored on the servers memory, once the web browser has the cookie, it's going to send any and all cookies
+    // For the current domain back to the server with every single request and that is going to happen automatically
+    // So now anytime we visit, any localhost:3000 url, our google chrome web browser is going to send this cookie and value back to the node server
+    // So our server is going to see this unique identifier value and say aha, the only way you would  know this unique session identifier is if
+    // I just send it to you in a cookie, so the server says the fact that you know this session value, that means I can trust you
+    // Or I can trust that you're the same person or the same web browser that just typed in the correct username and password
+    // You're the same person or same browser that I just sent his value to, a moment ago
+    // When you restart a computer or server, it's memory is cleared, so if we try to send a request to our local domain
+    // After restarting the server, because it cleared all of the session data that was in memory, the server doesn't remember me
+    // So to get around this, instead of storing session data in memory, we will store session data in mongodb database
+    // Not only it is more robust way of storing data, but it will also let us visualize a piece of session data
+    // In firefox alternative name for Application is Storage
+    req.session.user = {favColor: "blue", username: user.data.username}
     res.send(result)
   }).catch(function(e) {
     // Now in case of catch, it is industry standard to call this param e or err or error, Brad chose e
@@ -72,8 +103,16 @@ exports.register = (req, res) => {
 // This is the function which gonna be called when some1 visits the base url
 // If they're loggedin they would see personalized dashboard
 // But if they're not loggedin they should just see guest home page template
+
+// Lets use given session data if someone visits the homepage or base url 
 exports.home = (req, res) => {
-  res.render('home-guest')
+  // The only way that this user object would ever exist on the session object is if they just performed a successful login
+  if (req.session.user) {
+    res.send("Welcome to the actual application!")
+  } else {
+    // If user is not logged in means, don't have any session data, we send them to guest template
+    res.render('home-guest')
+  }
 }
 
 // @TODO why we have to require('express') in router.js and not here, maybe cuz we aren't using any express code here? idk, gotta check for sure
