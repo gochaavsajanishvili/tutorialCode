@@ -8,8 +8,26 @@ const User = require('../models/User')
 // To export multiple functions from a file, after . we make up a property name and set that to equal whatever we want
 // In this case to a function, now when the node environment sees this code it's going to know what to do with it
 // It will make sure that property named login will be added to what's going to be exported from the file
-exports.login = function() {
+exports.login = (req, res) => {
+  let user = new User(req.body)
+  // Okay so we will now go to our user model where we will create this login() method
+  // Remember because it's model not controller that handles the business logic and managing all our data
+  // So in terms of looking up a username and password in the database that should definitely be done in our model
+  // Not in our controller
   
+  // We don't know how long this login() method is going to take, because it's working with the database
+  // We have to wait till login() method finishes its job and then send our response to the browser
+  // There are many ways to set this up but for now we will use traditional and later best practice approach
+  // Traditional approach is called callback function, since we don't know how long login() method will take
+  // We can provide it a function as an argument, so that function is an arg that's going to get passed in to our
+  // Login function, so back in a User model file, when we are defining what this login() method should be
+  // We should receive that incoming function with a parameter, we will call it callback
+  // So we are passing this anonym function as an argument into login and then when we define that login function
+  // We are waiting until the perfect moment to call that function, in other words we know that this function
+  // Is not going to run until the appropriate moment and as in model we are passing strings rn, we added here result param to receive them
+  user.login(function(result) {
+    res.send(result)
+  })
 }
 
 exports.logout = () => {

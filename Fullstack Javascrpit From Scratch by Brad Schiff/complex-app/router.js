@@ -12,6 +12,8 @@ const userController = require('./controllers/userController')
 // This is same as app.get() or app.post() it works exactly the same way
 router.get('/', userController.home)
 router.post('/register', userController.register)
+// The second arg is a function that we want to call in response to this happening
+router.post('/login', userController.login)
 
 // We are exporting the router variable of ours, that's what we are exporting and making available to any file that requires in, this file
 // As I get it, we do this to make possible from the file where we require this router file to use the router functionalities
@@ -36,3 +38,5 @@ module.exports = router
 // Now that we have the basic organization of the router and the controller set up lets look ahead to our next actual task
 // It would make a sense to focus on the ability of the visitor to register for an account
 // So from here, we go to html template or our views and check to what url the registering form attempts to post to
+
+// As I get it now, for each request no matter which get or post, we add new route and handle that

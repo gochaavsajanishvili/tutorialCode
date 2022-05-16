@@ -1,4 +1,7 @@
 // AVOID USING ARROW FUNCTIONS IN MODELS, THEY DON'T WORK HERE, THEY CAUSE BUGS
+// So one of the great things about an arrow function is that it doesn't manipulate or change the this keyword
+// So whatever the this keyword was set to outside of this function is what it will still be equal
+// @TODO I got the sense of why it wasn't working but haven't yet completely realized, gotta find out sometime another
 
 // This going to return the database object so we look inside it with .collection() and choose the collection we want in this file
 // To work with, oh wooow, I'm impressed again, omg, I have shivers
@@ -57,6 +60,44 @@ User.prototype.validate = function() {
   // Instead of validating the email with regular expressions we will use npm package for it
   // We will install the validator package with the following command > npm install validator
 }
+// About the callback paramater in this function, go read in our user model User.js, right where this login method is called
+User.prototype.login = function(callback) {
+  // This method will check to make sure that the values are strings of text
+  // After this, what we want to do is look into database and before we even worry about the password value at all, 
+  // We want to focus on a username value, meaning is there even an existing user document with matching username
+  // That the visitor just tried login with
+  this.cleanUp()
+  // This is an object that represents our database collection and we can perform CRUD operations on it
+  // In this case we are interested in R in CRUD, which is READ, we want to read or load or lookup data from the database
+  // We will call .findOne() method and give it two args
+  // For the first arg we give it an object, thats where we tell mongo, what we are trying to find
+  // So lets say we are trying to find where username property or field is matching whatever the user just typed in
+  // For the second arg we pass function, which will be called, once the first arg operation had had a chance to complete
+  // Because we don't know how long it's gonna take for database to perform the find action
+  // Brad just made up the name for second arg of function here, technically we can name it anything
+  // So the idea here is that, if mongodb does find the user that matches our condition, it's going to pass that document
+  // As attemptedUser paramater into our anonym function
+  usersCollection.findOne({username: this.data.username}, (err, attemptedUser) => {
+    // So we placed that param here as a condition, cuz the function will be called even if mongodb didn't find matching user
+    // So we want to check if it did found one and if it did the condition will evaluate to true
+    // In this context we gotta make sure that this keyword doesn't come to bite us :d
+    // Means that when the .findOne() method calls the callback function, because it's not an object directly calling our function
+    // JavaScript is actually going to consider the global object to be what's calling our function, so that's what it is going to set
+    // this keyword to, instead of our lowercase user object that we created from our blueprint, luckily there is an easy way to get
+    // Around this, instead of providing a traditional anonym function, we can provide an arrow function, omg I'm gonna get now
+    // Why arrow functions weren't working here properly, I wrote about it in the beginning of file
+    // So if below condition is true, that means that user has typed in correct username and password, it matches something
+    // In our existing database
+    if (attemptedUser && attemptedUser.password == this.data.password) {
+      // We want to send res.send() here, but it's not job of our model to send back response for that route
+      // That is the job of our controller
+      // We set it up in our controller, so this function will be called after database action is complete
+      callback("Congrats!")
+    } else {
+      callback("Invalid username / password.")
+    }
+  })
+}
 
 // So we won't add a method directly to the blueprint because in that case that function will be duplicated or recreated for each new object
 // Alternative way of addming methods to blueprint is below, using this approach javascript won't have to create or add new method for
@@ -95,5 +136,5 @@ User.prototype.register = function() {
   // So within this users collection, each document will represent one user
 }
 
-// We have to set export to then set up import of it
+// We have to set export to then set up import of it <<< I don't know what the hell this means :d
 module.exports = User
