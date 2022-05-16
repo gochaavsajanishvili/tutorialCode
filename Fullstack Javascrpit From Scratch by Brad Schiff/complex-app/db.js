@@ -69,4 +69,42 @@ mongodb.connect(process.env.CONNECTIONSTRING, {useNewUrlParser: true, useUnified
 // I manage my individual variables, instead of having to change the my actual code, this way my important values are not hard coded
 // Now I can keep all sorts of things within my .env file, for example any secret ip keys that I am using to connect to third party apps
 // They can go in .env and when I push my code to heroku I just manually add this environment variables and I can set up them within Heroku
-// Dashboard or with a simple commandline commands 
+// Dashboard or with a simple commandline commands
+
+// Okay so here is the thing about promises, when we type await it waits for function till it completes and then moves to next one 
+// But this only can be used inside the async function
+// Also we can chain .then() if we return promises every time and also we can use one .catch for all of chained .then()s combined
+
+/**
+ * async function runOurActions() {
+ *  We use try/catch for error handling, the idea is here that any async operations here resulted in error, or if they REJECT
+ *  Instead of RESOLVE, then our catch() {} block will run and again like with chained .then()'s, we don't need to babysit which
+ *  Promise rejects or returns error, the catch will catch whichever gives us error
+ *  It is Brads favorite way to work with promises, with async/await way
+ *  try {
+ *    await eatBreakfast()
+ *    await eatLunch()
+ *    await eatDinner()
+ * On last function we don't need to add await cuz nothing comes after it so no code needs to wait for it to complete before running
+ * But if we add error handling we need to add await so the error catching function won't execute before this one
+ *    await eatDessert()
+ *  } catch(err) {
+ *      console.log(err)
+ *  }
+ * }
+ */
+
+// The Promise is an object that represents the eventual completion of asynchronous operation
+// Big picture, just like promise in real life is dealing with something happening in the future and just like in real life
+// We can either keep our promise or fail to deliver our promise, well in javascript a promise can either resolve or reject
+
+/**
+ * If you have multiple promises and you want to wait until they've all completed before doing something else, but you don't care what order the promises run/complete in, you can use the following syntax:
+
+async function() {
+  await Promise.all([promise1, promise2, promise3, promise4])
+  // JavaScript will wait until ALL of the promises have completed
+  console.log("All promises completed. Do something interesting now.")
+}
+There's no guarantee which one will finish first, but in situations where the ordering of actions isn't important this will definitely be the fastest way to handle things, as now the promises aren't blocking each other; they will all begin working at the same time (or within a few milliseconds of each other) and will complete as soon as possible (regardless or order).
+ */

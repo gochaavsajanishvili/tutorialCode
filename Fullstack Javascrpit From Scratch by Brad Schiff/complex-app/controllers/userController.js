@@ -25,8 +25,20 @@ exports.login = (req, res) => {
   // So we are passing this anonym function as an argument into login and then when we define that login function
   // We are waiting until the perfect moment to call that function, in other words we know that this function
   // Is not going to run until the appropriate moment and as in model we are passing strings rn, we added here result param to receive them
-  user.login(function(result) {
+
+  // We no longer want to use traditional callback function approach so we will replace the anonym function with result param and res.send(result)
+  // Line to modern promise way of doing things
+  // So now this login function (or method, Brad started calling it function but used to call it method) will return a promise
+  // We use it like this, after the function which returns the promise we type .then() and after that .catch(), then() for success
+  // And catch() for failure, within then() and catch() we provide functions
+  // So if our promise was successful, meaning our promise called resolve instead of reject
+  user.login().then(function(result) {
+    // We want to send response back to the web browser, and we can receive whatever value the promise resolved with by including param
+    // Within anonym function's parenthesis, we can call it anything but lets just call it result
     res.send(result)
+  }).catch(function(e) {
+    // Now in case of catch, it is industry standard to call this param e or err or error, Brad chose e
+    res.send(e)
   })
 }
 

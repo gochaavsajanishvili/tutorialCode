@@ -61,41 +61,67 @@ User.prototype.validate = function() {
   // We will install the validator package with the following command > npm install validator
 }
 // About the callback paramater in this function, go read in our user model User.js, right where this login method is called
-User.prototype.login = function(callback) {
-  // This method will check to make sure that the values are strings of text
-  // After this, what we want to do is look into database and before we even worry about the password value at all, 
-  // We want to focus on a username value, meaning is there even an existing user document with matching username
-  // That the visitor just tried login with
-  this.cleanUp()
-  // This is an object that represents our database collection and we can perform CRUD operations on it
-  // In this case we are interested in R in CRUD, which is READ, we want to read or load or lookup data from the database
-  // We will call .findOne() method and give it two args
-  // For the first arg we give it an object, thats where we tell mongo, what we are trying to find
-  // So lets say we are trying to find where username property or field is matching whatever the user just typed in
-  // For the second arg we pass function, which will be called, once the first arg operation had had a chance to complete
-  // Because we don't know how long it's gonna take for database to perform the find action
-  // Brad just made up the name for second arg of function here, technically we can name it anything
-  // So the idea here is that, if mongodb does find the user that matches our condition, it's going to pass that document
-  // As attemptedUser paramater into our anonym function
-  usersCollection.findOne({username: this.data.username}, (err, attemptedUser) => {
-    // So we placed that param here as a condition, cuz the function will be called even if mongodb didn't find matching user
-    // So we want to check if it did found one and if it did the condition will evaluate to true
-    // In this context we gotta make sure that this keyword doesn't come to bite us :d
-    // Means that when the .findOne() method calls the callback function, because it's not an object directly calling our function
-    // JavaScript is actually going to consider the global object to be what's calling our function, so that's what it is going to set
-    // this keyword to, instead of our lowercase user object that we created from our blueprint, luckily there is an easy way to get
-    // Around this, instead of providing a traditional anonym function, we can provide an arrow function, omg I'm gonna get now
-    // Why arrow functions weren't working here properly, I wrote about it in the beginning of file
-    // So if below condition is true, that means that user has typed in correct username and password, it matches something
-    // In our existing database
-    if (attemptedUser && attemptedUser.password == this.data.password) {
-      // We want to send res.send() here, but it's not job of our model to send back response for that route
-      // That is the job of our controller
-      // We set it up in our controller, so this function will be called after database action is complete
-      callback("Congrats!")
-    } else {
-      callback("Invalid username / password.")
-    }
+
+// We will now delete the callback param here cuz we are transforming this traditional callback function into new promise
+// Practice
+User.prototype.login = function() {
+  // When we call this login function from userController, this function is going to return a new object that is a promise
+  // Now when we create promise like this within it's parenthesis we want to pass it a function
+  // So to this anonym function we need to give two params, technically we can name it anything but the industry standard is resolve and reject
+  return new Promise((resolve, reject) => {
+    // Here we can perform async operations or operations that are going to take some time to complete
+    // And whenever those actions are complete, we just call resolve or reject, that's how we let js know
+    // That this promise either completed in the case of resolve or had a chance to fail in the case of reject
+    // Okay one thing is left till we be able to use promise is we should change anonym function to arrow function which we pass to promise
+    // So it won't manipulate the this keyword (god I wish i understand it perfect, hope soon I will)
+    
+    // This method will check to make sure that the values are strings of text
+    // After this, what we want to do is look into database and before we even worry about the password value at all, 
+    // We want to focus on a username value, meaning is there even an existing user document with matching username
+    // That the visitor just tried login with
+    this.cleanUp()
+    // This is an object that represents our database collection and we can perform CRUD operations on it
+    // In this case we are interested in R in CRUD, which is READ, we want to read or load or lookup data from the database
+    // We will call .findOne() method and give it two args
+    // For the first arg we give it an object, thats where we tell mongo, what we are trying to find
+    // So lets say we are trying to find where username property or field is matching whatever the user just typed in
+    // For the second arg we pass function, which will be called, once the first arg operation had had a chance to complete
+    // Because we don't know how long it's gonna take for database to perform the find action
+    // Brad just made up the name for second arg of function here, technically we can name it anything
+    // So the idea here is that, if mongodb does find the user that matches our condition, it's going to pass that document
+    // As attemptedUser paramater into our anonym function
+
+    // Since we started using promises we will now replace this traditional callback approach as well
+    // Cuz mongodb package is very modern, it not only allows us to use traditional callback but also will return a promise
+    // Brad says that almost all mongodb methods return promises
+    // Now because we know that this method returns promise, we can call .then() and .catch() on it
+    usersCollection.findOne({username: this.data.username}).then((attemptedUser) => {
+      // So we placed that param here as a condition, cuz the function will be called even if mongodb didn't find matching user
+      // So we want to check if it did found one and if it did the condition will evaluate to true
+      // In this context we gotta make sure that this keyword doesn't come to bite us :d
+      // Means that when the .findOne() method calls the callback function, because it's not an object directly calling our function
+      // JavaScript is actually going to consider the global object to be what's calling our function, so that's what it is going to set
+      // this keyword to, instead of our lowercase user object that we created from our blueprint, luckily there is an easy way to get
+      // Around this, instead of providing a traditional anonym function, we can provide an arrow function, omg I'm gonna get now
+      // Why arrow functions weren't working here properly, I wrote about it in the beginning of file
+      // So if below condition is true, that means that user has typed in correct username and password, it matches something
+      // In our existing database
+      if (attemptedUser && attemptedUser.password == this.data.password) {
+        // We want to send res.send() here, but it's not job of our model to send back response for that route
+        // That is the job of our controller
+        // We set it up in our controller, so this function will be called after database action is complete
+
+        // Here to replace old traditional way of callback to modern promise we change this callback function to resolve
+        // That's if login was successfull otherwise check else
+        resolve("Congrats!")
+      } else {
+        // Otherwise we use reject instead of old, traditional callback function
+        reject("Invalid username / password.")
+      }
+    }).catch(function() {
+      // This error is thrown not because of user, but because of we devs made some mistake
+      reject("Please try again later.")
+    })
   })
 }
 
