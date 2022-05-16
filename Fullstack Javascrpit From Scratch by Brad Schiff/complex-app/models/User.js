@@ -1,5 +1,9 @@
 // AVOID USING ARROW FUNCTIONS IN MODELS, THEY DON'T WORK HERE, THEY CAUSE BUGS
 
+// This going to return the database object so we look inside it with .collection() and choose the collection we want in this file
+// To work with, oh wooow, I'm impressed again, omg, I have shivers
+// Awesome, now we have this variable usersCollection on which we can perform CRUD operations on
+const usersCollection = require('../db').collection("users")
 // We will use this package instead of regular expressions to validate the email user types in
 const validator = require('validator')
 // This function will be our constructor function, this will be reusable blueprint that can be used to create user objects
@@ -61,13 +65,34 @@ User.prototype.validate = function() {
 // Instead any new object created using above constructor function will simply have access to this method
 // Within this register function, before we actually register the user, or in other words save the user to the database
 // We will first validate their username, email and password values or in other words we will want to enforce all of our business logic
+
+// This is what our userController is going to call, when some1 submits the user registration form
 User.prototype.register = function() {
   // Step #1: Validate user data | This is where we check to make sure that none of the fields are empty and also that the values make sense
   // In the name of organization we moved away the validation method and just called it here
   this.cleanUp()
   this.validate()
+
   // Step #2: Only if there are no validation errors then save the user data into a database
   // We want to permanently store users username email and password so we can later reference it when user tries to login in the future
+
+  // Here we will check if there are any validation errors, with length it will evaluate to true if there are errors so we check opposite of that
+  if (!this.errors.length) {
+    // If there are no errors we want to add or insert new document into the database collection in this case users
+    // Within this parenthesis we want to give an object that we would want to save as a document, in this case we just type following
+    // Because with above methodes we've already cleaned up and validated that data, we know that below line is only going to run
+    // If there are no validation problems, so that data is safe to store in the database
+    usersCollection.insertOne(this.data)
+  }
+
+  // Okay we again will create a database and Brad recommended to create separate databases for each new project
+  // We go to cloud.mongodb.com
+  // Then Browse Collections
+  // Then + Create Database
+  // We choose database name and for first collection we chose users, cuz we are working on them rn so as I get it for different chunks of data
+  // We will have separate collections
+  // We typed database name in PascalCase and collection name in lowercase
+  // So within this users collection, each document will represent one user
 }
 
 // We have to set export to then set up import of it

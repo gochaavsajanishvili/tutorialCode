@@ -70,7 +70,11 @@ app.get('/', (req, res) => {
 app.use('/', router)
 
 // Now we will tell our app to begin listening to incoming requests
-app.listen(3000)
+// app.listen(3000)
+// We commented out app.listen(3000) and added this line below cuz we are making db.js the first file to start with
+// This way we still are creating our express application under this variable app but instead but instead telling it
+// To actually start listening, we just exporting it from this file and I guess we will add listening line to db.js
+module.exports = app
 
 // In the name of repetition I write here that following cmd code launchs our app, after node we type the name of the main file > node app
 
@@ -146,3 +150,6 @@ app.listen(3000)
 
 // In the root folder we create new subfolder named models and in the models folder we create files with first letter uppercase for example for user model
 // We will create User.js
+
+// Okay so we will create a separate file for a database connection which will be responsible only for that, so then we can reuse it everywhere
+// The file will be db.js
