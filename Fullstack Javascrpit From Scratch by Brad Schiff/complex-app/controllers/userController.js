@@ -68,16 +68,43 @@ exports.login = (req, res) => {
 
     // So if we are gonna save sessions to mongodb database we will need the NPM package for it named connect-mongo
     // The command to install it is > npm install connect-mongo
+
+    // So this happens automatically, but as we work with databases we don't know how long it's gonna take, so we will also
+    // Use manual method, because of our redirection, so that we will be sure that redirection will happen only after this info is saved
+    // In database
     req.session.user = {favColor: "blue", username: user.data.username}
-    res.send(result)
+    // Alright! I achieved it! I made it so after login user goes straightly to dashboard without this stupid congrats message and need
+    // To do it manually, but well, lets wait for brad to do it
+    // res.render('home-dashboard', {username: req.session.user.username})
+    // res.redirect('home-dashboard', {username: req.session.user.username}) // I will uncomment this if brad writes it 
+    // So neither of above commented codes were good solutions, but I was close enough, we don't need to add home-dashboard here as well
+    // Because when receiving req to base url, it is automatically checked on session and if session is, it automatically gives proper page
+
+    // This save() method will not be called before the session data completes saving into database
+    req.session.save(function() {
+      res.redirect('/')
+    })
   }).catch(function(e) {
     // Now in case of catch, it is industry standard to call this param e or err or error, Brad chose e
     res.send(e)
   })
 }
 
-exports.logout = () => {
-
+// So if the current incoming request from a browser has a cookie with a valid or matching session id
+// Below code is going to find that in the database and destroy that session
+exports.logout = (req, res) => {
+  // So that's how we logout, by killing the poor sessions
+  // Okay so after destroying the session we want to redirect user to homepage but the problem is we don't know when this destroy()
+  // Method will finish it's job, cuz well we interact with a database, so we gotta time it out in a way so the redirection
+  // Didn't happen until the session is dead, we could do it with promise but in given time period of tutorial session methods
+  // Doesn't return promises, so we will do it in oldschool callback way @TODO check if session methods now return promises and refactor code 
+  req.session.destroy(function() {
+    // Because there are different homepages depending on if user is logged in or not, we really need to wait for this destroy() method to finish
+    // To don't show user wrong template
+    // We don't click on back button to check wether we loggedout or not, cuz browser uses cached copy of url and it might show the loggedin
+    // Template, user won't have that problem because we bind to each button the proper redirection, means proper request so page will update 
+    res.redirect('/')
+  })
 }
 
 // This router is gonna call the function whenever some1 submits the register form

@@ -14,6 +14,7 @@ router.get('/', userController.home)
 router.post('/register', userController.register)
 // The second arg is a function that we want to call in response to this happening
 router.post('/login', userController.login)
+router.post('/logout', userController.logout)
 
 // We are exporting the router variable of ours, that's what we are exporting and making available to any file that requires in, this file
 // As I get it, we do this to make possible from the file where we require this router file to use the router functionalities
