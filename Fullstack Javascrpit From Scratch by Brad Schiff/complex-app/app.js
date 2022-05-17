@@ -13,6 +13,7 @@ const session = require('express-session')
 // This session is referencing the above express-session package
 // This is the old way and deprecated not working anymore so we remove the (session) and modify sessionOptions
 const MongoStore = require('connect-mongo')
+const flash = require('connect-flash')
 // After importing express we turn it on with following code
 const app = express()
 
@@ -51,6 +52,8 @@ let sessionOptions = session({
 
 // Now we will tell express to actually use sessions, cool, now our express app supports sessions
 app.use(sessionOptions)
+// At this point we've added flash feature to our application
+app.use(flash())
 
 // Here we require our newly created router.js file, we type ./ which means to look inside our current folder or directory and viola, the console.log()
 // Is executed immediately, that means that we successfully executed code from a separate file
@@ -200,3 +203,12 @@ module.exports = app
 // For our views and etc. 
 // For detailed intro comment about sessions and tokens, visit db.js
 // Here in this file we will enable sessions as well
+
+// ====== Flash Messages ======
+// Okay so to implement flash messages the first thing we have to do is install the package
+// The command for it is > npm install connect-flash
+// Yeey, I guessed that we will work in this file and started typing those instructions here <3
+// I guess I will have to start writting titles for those instructions to easly navigate through them in future
+// I will start with this one, I will invent my own titles or just use the names of videos
+// Okay just to be clear, each time we install a package, to use it, we have to then require it!
+// Stick this to mind, remember it, do it finally!

@@ -34,7 +34,19 @@
 <!-- header ends here -->
 
 <div class="container py-md-5">
-
+  <!-- Here we will enter red rectangle error message -->
+  <!-- So this errors is going to be array, even if there are no errors, then it will be an empty array -->
+  <!-- In js, every array has a method named forEach(), within those parenthesis we can provide function, anonym function in this case -->
+  <!-- And javascript will call this function once for each item in the array, within parenthesis of that function we include param -->
+  <!-- And we called it a message in this case, and then we want to output or print a bit of html with that message -->
+  <!-- So as it seems we leave the dynamic js mode with each line here, or at least when we gotta put html inbetween -->
+  <% errors.forEach(function(message) { %>
+    <div class="alert alert-danger text-center">
+      <!-- Here we want to include the value of the current item in the array, which we can access from message param -->
+      <!-- So we write it like this, with the equal sign to print/output it to the user -->
+      <%= message %>
+    </div>
+  <% }) %> 
   <div class="row align-items-center">
     <div class="col-lg-7 py-3 py-md-5">
       <h1 class="display-3">Remember Writing?</h1>      

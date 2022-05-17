@@ -86,7 +86,39 @@ exports.login = (req, res) => {
     })
   }).catch(function(e) {
     // Now in case of catch, it is industry standard to call this param e or err or error, Brad chose e
-    res.send(e)
+    // res.send(e) 
+    
+    // Here we will leverage the flash package, which will add flash object to req object
+    // Within those parenthesis we give two args, first arg is the name of a collection or an array of the messages that we want to
+    // Start building or adding onto
+    // For the second arg we include an actual message that we want to add onto this array or collection
+    // Instead of typing a string directly we pass the value of e, because that's the value the our promise is going to reject with
+    // And so that will get passed into this function, so essentially this is just string of text that says - Invalid username / password
+    // And all this flash package is going to do is help us add or remove data from our session, the flash package is really simple
+    // It's actually 82 lines of code (at least for 2019 it was that number), we could right the similar code ourselves but this package
+    // Will make our lives simpler and woow again, this interconetion of code, functions and files with each other in programming
+    // I can't get enough of this, it amazes me every single time!
+    // Okay so this line is going to result in the following: 
+    // It's going to look into our session, so req.session, now in a previous lesson we added a property or object to the session named user
+    // req.session.user, in this case it's going to add a property or object named flash and then inside that object there's going to be a porperty
+    // Named errors, req.session.flash.errors, because that's what we named our collection and that's going to be an array so
+    // req.session.flash.errors = [], and in this case we only pushed one item e into the array, which is that message that's gonna say
+    // Invalid username / password.
+    // Now that we know that this line is going to modify our session data and because we know that's going to require a trip to the database
+    // Which can take some time, we wanna be sure to not perform redirect, until that database action has actually completed, our session package
+    // Will automatically save to the database anytime we call res.send() or res.redirect(), but there's no guarantee that it would finish in time
+    // Before the redirect
+    req.flash('errors', e)
+    // So as the solution to this situation we will manually tell our session to save and then provide the callback function which is going to be
+    // Called after the database save is completed
+    // So idea is here that, because we saved this error message in a session, it's persistent, it's going to stick around for a while
+    // So it will be available even after a redirect
+    req.session.save(function() {
+      // Now instead of above res.send() we want to redirect the users back to the home page
+      // If we preform a redirect, that's going to be considered as new separate request
+      // Since we are redirecting to the home page our router is going to call our home function
+      res.redirect('/')
+    })
   })
 }
 
@@ -144,7 +176,20 @@ exports.home = (req, res) => {
     res.render('home-dashboard', {username: req.session.user.username})
   } else {
     // If user is not logged in means, don't have any session data, we send them to guest template
-    res.render('home-guest')
+
+    // Now we want to render this template with red warning box or error box that says invalid username or password
+    // Because of stateless http request, our server has no memory that the login has just failed
+    // And also we don't want to always show that warning when we render the home page, only after users fail to login
+    // So as we've learnt, when we need some sort of persistent memory of previous request we can leverage sessions <<< oh yeah I guessed last word!
+    
+    // With second arg, we pass data to into a template we give it an object and we want to have a property in this case named errors
+    // And for it's value, we would just want that errors array from our session data, we could acess that manually by typing 
+    // req.session.flash.errors, BUT, and this is the big reason why we use flash package, we don't only want to access that data, we also want to
+    // Delete it from the session, as soon as we've accessed it, because we only want to show this message to the user once, so with the flash
+    // Package as soon as you access it, it's also gonna delete it for us from the session
+    // So we say req.flash('errors') and give it as an arg the name of collection or array of messages that we are interested in
+    // We now gonna leverage this data from our home-guest template
+    res.render('home-guest', {errors: req.flash('errors')})
   }
 }
 
