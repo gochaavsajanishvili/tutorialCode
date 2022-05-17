@@ -65,6 +65,9 @@ exports.login = (req, res) => {
     // So to get around this, instead of storing session data in memory, we will store session data in mongodb database
     // Not only it is more robust way of storing data, but it will also let us visualize a piece of session data
     // In firefox alternative name for Application is Storage
+
+    // So if we are gonna save sessions to mongodb database we will need the NPM package for it named connect-mongo
+    // The command to install it is > npm install connect-mongo
     req.session.user = {favColor: "blue", username: user.data.username}
     res.send(result)
   }).catch(function(e) {
@@ -108,7 +111,10 @@ exports.register = (req, res) => {
 exports.home = (req, res) => {
   // The only way that this user object would ever exist on the session object is if they just performed a successful login
   if (req.session.user) {
-    res.send("Welcome to the actual application!")
+    // When we render the template, first arg should be the name of the template ofc, but we can also include
+    // Second arg, where we can provide object with which we can include any data, which we want to pass in
+    // to the given template, we can make up any properties we want, but for now we will choose username
+    res.render('home-dashboard', {username: req.session.user.username})
   } else {
     // If user is not logged in means, don't have any session data, we send them to guest template
     res.render('home-guest')

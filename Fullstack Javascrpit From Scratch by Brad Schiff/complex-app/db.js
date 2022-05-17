@@ -28,8 +28,11 @@ mongodb.connect(process.env.CONNECTIONSTRING, {useNewUrlParser: true, useUnified
   // This will return the actual database object that we can work with, Brad highlighted .db() method when was saying that
   // From there we can then find the collection and then we can perform CRUD operations to CREATE, READ, UPDATE, DELETE database documents
   // After saving the database object to module.exports, if we require this file withing another file, it's going to return the database
-  // That we can work with 
-  module.exports = client.db()
+  // That we can work with
+  
+  // We deleted the .db() to not only export a database but a whole client itself (like I know what client means)
+  // @TODO find out what client means
+  module.exports = client
   // Now express application isn't going to begin before the connection with database is established
   // With Brads words, it's not going to begin until we've already had a chance to export the mongodb database
   // This means that we can now very easily access and work with our database from within any file where we just require in this db.js file

@@ -8,12 +8,20 @@
 // We now declare variables which we shouldn't ever change as const to prevent bugs
 const express = require('express')
 const session = require('express-session')
+// We capitalized M here, because it's actually a blueprint, that we're going to use to create new object'
+// @TODO find out how is it possible to chain parenthesis
+// This session is referencing the above express-session package
+// This is the old way and deprecated not working anymore so we remove the (session) and modify sessionOptions
+const MongoStore = require('connect-mongo')
 // After importing express we turn it on with following code
 const app = express()
 
 // We need to spell out a few configuration options for how we want to use sessions, lets create variable, we can call it anything but Brad uses
 // Following name, so here we leverage that package, within parenthesis we want to provide an object
 // Now we provide a few different properties or options
+
+// After we install the mongo package to store there sessions we will have to modify below session options until it's a store session data
+// Within mongodb
 let sessionOptions = session({
   // No matter what we include here it just has to be something that someone couldn't guess
   // Brad said, these are just boring configuration options that are not worth memorizing
@@ -21,6 +29,15 @@ let sessionOptions = session({
   // This completes our configuration or settings to enable sessions
 
   secret: "JavaScript is soooooooo coool",
+  // By default this session package will store session data in memory, but we can override that default with this option store here
+  // Within parenthesis of this MongoStore we need to pass in object and we only need this object to have one property client
+  // And there we provide a mongodb client, luckily for us we've already setup standalone reusable file that connects to our database
+  // We mean db.js so we will just import it right here, bad news is it's currently set up to export a database not a mongodb client
+  // But it's easy to fix, we've removed in db.js from module.exports = client.db() the .db()
+  // Since we changed what our db exports, we also wanna update our model
+
+  // So here we removed the new keyword and added the .create() method it is newer way and fixed our issue
+  store: MongoStore.create({client: require('./db')}),
   resave: false,
   saveUninitialized: false,
   // We set cookie to object because it should have several subproperties

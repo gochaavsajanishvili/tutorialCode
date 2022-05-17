@@ -7,7 +7,10 @@ const bcrypt = require('bcryptjs')
 // This going to return the database object so we look inside it with .collection() and choose the collection we want in this file
 // To work with, oh wooow, I'm impressed again, omg, I have shivers
 // Awesome, now we have this variable usersCollection on which we can perform CRUD operations on
-const usersCollection = require('../db').collection("users")
+
+// Now since the db.js is exporting a client instead of database we have to fix this, we will add .db()
+// before the .collection(), as easy as that
+const usersCollection = require('../db').db().collection("users")
 // We will use this package instead of regular expressions to validate the email user types in
 const validator = require('validator')
 // This function will be our constructor function, this will be reusable blueprint that can be used to create user objects
