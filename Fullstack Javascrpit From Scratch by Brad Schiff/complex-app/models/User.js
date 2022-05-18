@@ -19,6 +19,7 @@ const bcrypt = require('bcryptjs')
 const usersCollection = require('../db').db().collection("users")
 // We will use this package instead of regular expressions to validate the email user types in
 const validator = require('validator')
+const md5 = require('md5')
 // This function will be our constructor function, this will be reusable blueprint that can be used to create user objects
 // In other words we want to be able to leverage this function from within our userController file 
 // Here we add parameter data to receive the form field data passed from controller
@@ -159,6 +160,18 @@ User.prototype.login = function() {
       // bcrypt package, in compareSync() method we give it two args, first is gonna be a password that user just typed in
       // That will be something that is not already hashed and the second value will be the hashed value from the database
       if (attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
+        // We added this line, because email wasn't pulled into this function so avatar won't get populated with data
+        // Because user only typed in username and password to login, as findeOne() method searched for user in database
+        // When it found, it passed that user to attemptedUser with all of its properties, before this moment
+        // We were only comparing username and password but the email resided in that attemptedUser as well
+        // So we just updated current object with that email from database and viola, everything works like a piece of cake now
+        // I might forget and don't understand this thing later on, but I'm happy that I get it now <3
+        
+        // I will also write Brad's words here, they are more clear: - We need to grab the associated email with that user account
+        // From the database, luckily we already have this attemptedUser that represents the associated user document in the database
+        this.data = attemptedUser
+        // This going to populate property named avatar on our object
+        this.getAvatar()
         // We want to send res.send() here, but it's not job of our model to send back response for that route
         // That is the job of our controller
         // We set it up in our controller, so this function will be called after database action is complete
@@ -235,6 +248,13 @@ User.prototype.register = function() {
       // We have to make sure that this database action completes before we call resolve() so we include await, because we know
       // That mongodb methods return a promise
       await usersCollection.insertOne(this.data)
+      // We include this action after database completes it's job, because we don't want to store avatar url in the database permanently
+      // Because what if gravatar service in the future changes their url structure, at that point we will have to go to every user account
+      // In the database and update their avatar database field, instead it just makes more sense to generate their url on the fly, when we
+      // Need it, it's not a big deal because md5 hashing operation is very cheap, quick operation, so in other words, we aren't worried
+      // Storing this in the database permanently, we are just storing it in memory of the user object
+      // Now we will go to userController and leverage this avatar property on our object
+      this.getAvatar()
       // So we called resolve() after the validation was successful and the registration completed and we will call reject() if there were errors
       resolve()
     } else {
@@ -251,6 +271,24 @@ User.prototype.register = function() {
     // We typed database name in PascalCase and collection name in lowercase
     // So within this users collection, each document will represent one user
   })
+}
+
+// We will now add avatar feature using stupid gravatar system, nobody uses that thing and nobody cares about two step registration
+// Because of that, okay I will try to change it later on, lets continue
+// Because this feature relies on the data for a user it makes sense to include this in a model, lets create a new function for it
+User.prototype.getAvatar =  function() {
+  // We set new property to our main object
+  // So the ?s=128 is the size of the avatar and to make this work we just need to replace word email before ? mark, with hashed
+  // with md5 library current users email, first we will go to NPM and pickup the md5 package
+  // The command is going to be > npm install md5
+  // This will give us access to the specific hashing algorithm that the gravatar service expects
+  // Now user object will have a property named avatar that is the url that points towards the photo
+  // Now we just need to call the function, at the appropriate times, first will be when the user has successfully loggedin
+
+  // @TODO I don't really get it, so when I register with gravatar it hashes my email in link and when I here pass to md5 my email
+  // It hashes as well and those hashing results will differ but then they will be recognized as same email, how? if there is no
+  // Dehashing and if hashing is one way option?
+  this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`
 }
 
 // We have to set export to then set up import of it <<< I don't know what the hell this means :d

@@ -73,7 +73,12 @@ exports.login = (req, res) => {
     // So this happens automatically, but as we work with databases we don't know how long it's gonna take, so we will also
     // Use manual method, because of our redirection, so that we will be sure that redirection will happen only after this info is saved
     // In database
-    req.session.user = {favColor: "blue", username: user.data.username}
+
+    // We removed useless favColor: blue and added the avatar property
+    // Just some lines above we created a user variable using our model as a blueprint, so we know that in memory is going to be
+    // A property avatar on that object and we are saving it in a session so as long as that user stays in, we don't need to calculate
+    // Gravatar again, we gonna do same thing to our register function
+    req.session.user = {avatar: user.avatar, username: user.data.username}
     // Alright! I achieved it! I made it so after login user goes straightly to dashboard without this stupid congrats message and need
     // To do it manually, but well, lets wait for brad to do it
     // res.render('home-dashboard', {username: req.session.user.username})
@@ -169,7 +174,9 @@ exports.register = function(req, res) {
     // Just successfully registered with, in the future, we will set things up so our controller doesn't even need to be aware of this data
     // Structure and instead, our promise will resolve back with the necessary data, but for now this will do the job
     // After we set this data, then we want to redirect our users back to the home page url
-    req.session.user = {username: user.data.username}
+
+    // We've added avatar property to be saved into session here too
+    req.session.user = {username: user.data.username, avatar: user.avatar}
     // We use manual save even though sessions save automatically, to wait till the database action in this case that save of username to
     // Session is completed and only then run the redirect
     req.session.save(function() {
@@ -232,7 +239,9 @@ exports.home = (req, res) => {
     // When we render the template, first arg should be the name of the template ofc, but we can also include
     // Second arg, where we can provide object with which we can include any data, which we want to pass in
     // to the given template, we can make up any properties we want, but for now we will choose username
-    res.render('home-dashboard', {username: req.session.user.username})
+
+    // So with username here we passed the avatar address to template as well, to leverage it from there
+    res.render('home-dashboard', {username: req.session.user.username, avatar: req.session.user.avatar})
   } else {
     // If user is not logged in means, don't have any session data, we send them to guest template
 
