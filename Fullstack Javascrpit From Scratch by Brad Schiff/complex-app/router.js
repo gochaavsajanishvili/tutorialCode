@@ -8,13 +8,28 @@ const router = express.Router()
 // We have to first require or import controller to then use it's functions, with ./ we look within the current directory starting from root
 // No need to include .js when we require the file 
 const userController = require('./controllers/userController')
+// So as I get it, to work in current file with the code of another file, we need to require that
+// Another file in current file
+const postController = require('./controllers/postController')
 
 // This is same as app.get() or app.post() it works exactly the same way
+
+// User related routes
 router.get('/', userController.home)
 router.post('/register', userController.register)
 // The second arg is a function that we want to call in response to this happening
 router.post('/login', userController.login)
 router.post('/logout', userController.logout)
+
+// Post related routes
+// Express lets us run multiple functions in response to given route
+// So we add userController.mustBeLoggedIn function anywhere where we want the route to be
+// Restricted for not loggedin users
+// So with that new mustBeLoggedIn() function, we can just check to see if there is a user object within the current session
+// If there's not, we can just redirect them to home page with an error message
+// But if there is a user object within the session, we can just say next(), where we tell express to run next function on that route
+// So then express actually would call next function, but effectively only logged in users will effectively get there
+router.get('/create-post', userController.mustBeLoggedIn, postController.viewCreateScreen)
 
 // We are exporting the router variable of ours, that's what we are exporting and making available to any file that requires in, this file
 // As I get it, we do this to make possible from the file where we require this router file to use the router functionalities

@@ -1,6 +1,22 @@
 // ../ is how we move up one directory or folder
 // We will now learn how to create a javascript object using this blueprint or constructor function
+const { redirect } = require('express/lib/response')
 const User = require('../models/User')
+
+// We already know what this next param is, but just to remind ourselves, with that function
+// We tell express that current route function is done and the next one can be leveraged
+exports.mustBeLoggedIn = function(req, res, next) {
+  // There only will be user object within session data if user has successfully logged in
+  // If that's the case, then we call next()
+  if (req.session.user) {
+    next()
+  } else {
+    req.flash("errors", "You must be logged in to perform that action.")
+    req.session.save(function() {
+      res.redirect('/')
+    })
+  }
+}
 
 // Our goal in this file is to export multiple functions that can be accessed from another javascript file
 // Now we gonna use alternative way of exporting from this file instead of listing functions in object like this

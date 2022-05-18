@@ -55,6 +55,12 @@ app.use(sessionOptions)
 // At this point we've added flash feature to our application
 app.use(flash())
 
+app.use(function(req, res, next) {
+  // We are now working with an object that will be available from within our ejs templates
+  // So we can add any objects or properties we want on this locals object
+  res.locals
+})
+
 // Here we require our newly created router.js file, we type ./ which means to look inside our current folder or directory and viola, the console.log()
 // Is executed immediately, that means that we successfully executed code from a separate file
 // Also, in case of packages we just type name, but when we import our files, we need to specify the path which points to chosen file 
