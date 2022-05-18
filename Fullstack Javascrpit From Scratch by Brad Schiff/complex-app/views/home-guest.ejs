@@ -56,7 +56,17 @@
       <!-- To /register the post method from this form will be sent -->
       <!-- From here we go back to routers file and tell our app from there what it should do when it receives post request from here -->
       <form action="/register" method="POST" id="registration-form">
-
+          <!-- We will add regErrors here, lemme write it, I think I will guess it right, okay I forgot about div -->
+          <!-- Later on, we will add live, on the fly validation, but it is good that we have setup serverside validation -->
+          <!-- Because we could never actually rely or trust browser side validation, because as end user can disable browser side javascript -->
+          <!-- So that would disable any browserside checking or validation, so when serverside validation is on, we can rest assured that -->
+          <!-- Our rules are enforced serverside no matter what and so we will circle back and add browserside validation just to enhance -->
+          <!-- User experience, big picture, we want validation on both sides, the server side for security reasons and browser side for UX -->
+          <% regErrors.forEach(function(message) { %>
+            <div class="alert alert-danger small">
+              <%= message %>
+            </div>
+          <% }) %> 
           <div class="form-group">
             <label for="username-register" class="text-muted mb-1"><small>Username</small></label>
             <input name="username" id="username-register" class="form-control" type="text" placeholder="Pick a username" autocomplete="off">

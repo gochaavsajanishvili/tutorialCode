@@ -9,6 +9,7 @@ const User = require('../models/User')
 // In this case to a function, now when the node environment sees this code it's going to know what to do with it
 // It will make sure that property named login will be added to what's going to be exported from the file
 exports.login = (req, res) => {
+  // We called this one here to get the user input data to then work with it
   let user = new User(req.body)
   // Okay so we will now go to our user model where we will create this login() method
   // Remember because it's model not controller that handles the business logic and managing all our data
@@ -140,7 +141,10 @@ exports.logout = (req, res) => {
 }
 
 // This router is gonna call the function whenever some1 submits the register form
-exports.register = (req, res) => {
+
+// Okay so if the user has validation errors when they submit the registration form, we will redirect them back to the same home page
+// And use flash messages to show the errors above the form, yeeah I guess where we will work on this so started those comments here!
+exports.register = function(req, res) {
   // With this console.log we confirmed that our controller is able to access visitors input
   // Our next step will be to validate this data and enforce our rules or business logic on it 
   // console.log(req.body)
@@ -151,15 +155,70 @@ exports.register = (req, res) => {
   // Okay so we capitalize the blueprint name so it will be easier to distinguish it from the object which we are creating from it
   // Within parenthesis we have to pass here form field values that visitor just submitted
   let user = new User(req.body)
-  user.register()
+  // Now that we turned this into async function in Users.js for validation purposes, we have to make sure that we give it a chance to actually
+  // Complete, before the next operation would begin, we will now adjust the register function, so it returns the promise and then we can await
+  // That promise, here within our controller
+  // Okay so as I get it, instead of await we are using .then(), it works similar, it waits for register() function to complete before it executes
+  // If our promise is successful and resolves, then() will take care of it, if it rejects, catch will take care of it, we will pass functions
+  // to then() and catch(), the arrow ones to don't affect the this keyword 
+  user.register().then(() => {
+    // So if user registration is successful, we instead of showing them stupid 'Congrats' message, will redirect them to home page
+    // But update their session data so they're actually logged in
+    // So we begin working with session data, to actually log them in, we want to create user property on the session and for now
+    // All we really need is to store the username, so we give our object a property of username and set that to whatever username they
+    // Just successfully registered with, in the future, we will set things up so our controller doesn't even need to be aware of this data
+    // Structure and instead, our promise will resolve back with the necessary data, but for now this will do the job
+    // After we set this data, then we want to redirect our users back to the home page url
+    req.session.user = {username: user.data.username}
+    // We use manual save even though sessions save automatically, to wait till the database action in this case that save of username to
+    // Session is completed and only then run the redirect
+    req.session.save(function() {
+      res.redirect('/')
+    })
+  }).catch((regErrors) => {
+    // So as catch handles the error side, we will add a code which adds flash messages for errors to catch()
+    // The regErrors param of catch() method will be filled with value that promise rejects with, we will reference that
+    // Instead of user.errors here, cuz it's basically same and just so this way our controller doesn't have to be aware of our data structure
+    // It's only calling the promise and letting the model deal with all of the data and the variable names
+    regErrors.forEach(function(error) {
+      req.flash('regErrors', error)
+    })
+    req.session.save(function() {
+      res.redirect('/')
+    })
+  })
   // Any value other than 0 evaluates to true so if there are any errors we will send them back to the user here
   // In the future we will set things up so that controller won't even need to have this basic logic of checking the errors array
-  // Ideally even this sort of logic should be left to model, not to controller 
+  // Ideally even this sort of logic should be left to model, not to controller
+
+  // Now as we made the user.register() function return a promise, we don't need this ifelse block anymore, we will use .then() and .catch()
+  // To replace it, so I will comment it out
+  /*
   if (user.errors.length) {
-    res.send(user.errors)
+    // res.send(user.errors)
+    // Instead of straightly sending those errors to user, we will use the flash package to add those same errors into our session data
+    // Then once we've done that, we can just redirect back to the home page, now we will begin working with our array of validation errors
+    // forEach() gonna call the passed function once for each item in the array, we pass param to function, to which forEach() will pass
+    // Array item one after another, we can call it anything but for now we will call it error, as we work with errors ya know
+    user.errors.forEach(function(error) {
+      // We chose different name this time for the flash array here, as we used previously the simple errors name for login errors
+      // I guess it will be good idea to always specify in the name, type of errors, even for the first time, to distinguish them
+      // Between each other @TODO change it for login
+      // Again, second arg is error which we want to push onto the flash array
+      req.flash('regErrors', error)
+    })
+    // Still inside the if, that's where we want to redirect back to home page, but now full of errors for user :d
+    // So because flash is going to adjust our session data, that's going to require a trip to the database, so we don't actually want to redirect
+    // Before that database action has been completed, so we gonna manually trigger the save to session and use that method to call the callback
+    // Which will only be called after the trip to database was completed so the redirection will happen after that trip
+    req.session.save(function() {
+      // After this we will go to our home function and adjust it to use our new session data
+      res.redirect('/')
+    })
   } else {
     res.send("Congrats, there are no errors.")
   }
+  */
 }
 
 // This is the function which gonna be called when some1 visits the base url
@@ -189,7 +248,11 @@ exports.home = (req, res) => {
     // Package as soon as you access it, it's also gonna delete it for us from the session
     // So we say req.flash('errors') and give it as an arg the name of collection or array of messages that we are interested in
     // We now gonna leverage this data from our home-guest template
-    res.render('home-guest', {errors: req.flash('errors')})
+
+    // We've added another property with regErrors with users registration mistakes, we set those properties to pull in the flash data
+    // Within the flash() parenthesis we are interested in collection which is named after specific errors
+    // From here we go to given template and leverage this passed errors data
+    res.render('home-guest', {errors: req.flash('errors'), regErrors: req.flash('regErrors')})
   }
 }
 
