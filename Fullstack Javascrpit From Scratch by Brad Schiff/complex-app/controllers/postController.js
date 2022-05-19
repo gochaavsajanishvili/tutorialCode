@@ -4,7 +4,10 @@ exports.viewCreateScreen = function(req, res) {
   // Brad passed username here too, idk what for when there is only avatar shown so I will
   // Not perform that action but leave the code for it here in comments in any case
   // username: req.session.user.username
-  res.render('create-post', {avatar: req.session.user.avatar})
+
+  // We remove second arg as we are improving the reusability, but I will save code here for future
+  // reference {avatar: req.session.user.avatar}
+  res.render('create-post')
 }
 
 // So if user is not logged in and visits create-post url, user should be redirected to the home page
@@ -32,3 +35,13 @@ exports.viewCreateScreen = function(req, res) {
 
 // Another area where we can avoid duplication is when we pass session data to the current template
 // We go to app.js
+
+// Brad is really into reusability in this lesson :d, now we will make reusable the home-guest header part
+// And will give it a logic, so if user will be logged in, the login form will not be given and vice verse
+// So we go to home-guest.ejs and copy login form to clipboard, we are going to move that into our shared
+// Header include file and then check to see if there is an user object on the session, if there's not, then we can show them this guest form
+// Instead of top right menu
+
+// Omg here we go again, again with reusability, relax not that I don't like it, just messing around, I actually am a fan of reusability and
+// This is really interesting for me!
+// Okay so now we go with footer, if I knew, I'd not change dates in all files -_-

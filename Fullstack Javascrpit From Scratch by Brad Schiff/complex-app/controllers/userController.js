@@ -257,7 +257,10 @@ exports.home = (req, res) => {
     // to the given template, we can make up any properties we want, but for now we will choose username
 
     // So with username here we passed the avatar address to template as well, to leverage it from there
-    res.render('home-dashboard', {username: req.session.user.username, avatar: req.session.user.avatar})
+
+    // We remove second arg as we are improving the reusability, but I will save code here for future
+    // reference {username: req.session.user.username, avatar: req.session.user.avatar}
+    res.render('home-dashboard')
   } else {
     // If user is not logged in means, don't have any session data, we send them to guest template
 

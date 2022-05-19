@@ -57,8 +57,17 @@ app.use(flash())
 
 app.use(function(req, res, next) {
   // We are now working with an object that will be available from within our ejs templates
-  // So we can add any objects or properties we want on this locals object
-  res.locals
+  // So we can add any objects or properties we want on to this locals object
+  // So altogether when we say app.use() we are telling express to run this function for every request
+  // And because we are including this before our router, that means this will run first and then since we are calling next()
+  // Express will move on to run an actual relevant functions for particular route
+  // But big picture, this means that we now have access to a user property (res.locals.user) from within any of our ejs templates
+  // We will now remove duplicated code where we are passing session data to a template, first in userController and then postController
+  // After that we update the templates to pull from this new user object (res.locals.user)
+  // So we just added user. before the properties in templates, not so hard to remember but
+  // I struggle to grasp the whole process a bit
+  res.locals.user = req.session.user
+  next()
 })
 
 // Here we require our newly created router.js file, we type ./ which means to look inside our current folder or directory and viola, the console.log()
