@@ -94,7 +94,10 @@ exports.login = (req, res) => {
     // Just some lines above we created a user variable using our model as a blueprint, so we know that in memory is going to be
     // A property avatar on that object and we are saving it in a session so as long as that user stays in, we don't need to calculate
     // Gravatar again, we gonna do same thing to our register function
-    req.session.user = {avatar: user.avatar, username: user.data.username}
+
+    // We will add new property _id: user.data._id, to identify which user posted a specific post, in other words to bind the author to
+    // His/her post
+    req.session.user = {avatar: user.avatar, username: user.data.username, _id: user.data._id}
     // Alright! I achieved it! I made it so after login user goes straightly to dashboard without this stupid congrats message and need
     // To do it manually, but well, lets wait for brad to do it
     // res.render('home-dashboard', {username: req.session.user.username})
@@ -192,7 +195,10 @@ exports.register = function(req, res) {
     // After we set this data, then we want to redirect our users back to the home page url
 
     // We've added avatar property to be saved into session here too
-    req.session.user = {username: user.data.username, avatar: user.avatar}
+
+    // We will add new property _id: user.data._id, to identify which user posted a specific post, in other words to bind the author to
+    // His/her post
+    req.session.user = {username: user.data.username, avatar: user.avatar, _id: user.data._id}
     // We use manual save even though sessions save automatically, to wait till the database action in this case that save of username to
     // Session is completed and only then run the redirect
     req.session.save(function() {

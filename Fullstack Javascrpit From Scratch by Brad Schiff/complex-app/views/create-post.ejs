@@ -31,8 +31,13 @@
 <!-- Again, check postController if you forgot what this line means -->
 <%- include('includes/header') %>
   
+  <!-- Okay so we want to save the title and body values for these fields into our database as a new document -->
   <div class="container py-md-5 container--narrow">
-    <form action="#" method="POST">
+    <!-- Wooow, okay now I felt the difference between get and post, this /create-post url is the same url user is visiting -->
+    <!-- But when the user is viewing that in the browser that is the GET request to the /create-post url -->
+    <!-- Whereas when this form submits the following form it's going to be a post request and as far as our server is concerned -->
+    <!-- Those are two completely different requests -->
+    <form action="/create-post" method="POST">
       <div class="form-group">
         <label for="post-title" class="text-muted mb-1"><small>Title</small></label>
         <input required name="title" id="post-title" class="form-control form-control-lg form-control-title" type="text" placeholder="" autocomplete="off">

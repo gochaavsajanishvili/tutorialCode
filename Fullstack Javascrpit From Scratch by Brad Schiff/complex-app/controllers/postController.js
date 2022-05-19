@@ -1,3 +1,7 @@
+// We're gonna require our post model, so it's a blueprint aka class, so it will be first letter uppercase
+// Then we can leverage this in the body of our functions, in this case create() function
+const Post = require('../models/Post')
+
 // Here we will start exporting the functions which our router is gonna call
 exports.viewCreateScreen = function(req, res) {
   // Added second arg to fix avatar in new create-post template, did it all by myself
@@ -8,6 +12,36 @@ exports.viewCreateScreen = function(req, res) {
   // We remove second arg as we are improving the reusability, but I will save code here for future
   // reference {avatar: req.session.user.avatar}
   res.render('create-post')
+}
+
+exports.create = function(req, res) {
+  // Within the body of this function we just wanna store whatever values users typed in a title and body content fields
+  // We wanna store them in the database, however, lets remember that any sort of data management should really be done
+  // Within our model, not within our controller, so now we are going to create a post model
+  // Here our post variable equals to our blueprint or a model of what a post should be, within the parenthesis, we want to pass to our blueprint
+  // req.body which will contain form data that a visitor just submitted
+  // We know that lowercase post or our post variable is going to be an object and we haven't actually created any methods within our blueprint yet
+  // But soon we will create a method named create within our model and we can set this method up to return a promise, and promise can either
+  // Resolve or reject, so after the promise we can write .then() and .catch(), then() will solve the things if the promise is successful
+  // Or resolves and catch() will handle things if promise fails things or rejects, so within both of them, lets provide functions and this time
+  // I won't risk with arrow functions till I understand them completely, I will just go with what Brad tolds me to :d
+  // Actually I think I'm starting to understand the difference between model and controller
+
+  // We can also pass here the current user id from session data, but if we are going to do that, we need to make sure that whenever
+  // A user logs in or registers, that we are actually storing that id value in the current session data
+  // We will do it from our userController file and then we can leverage that id which will now exist in the session data
+  // Btw we type req because it is an object where the needed information is stored
+  // Finally we will leverage this in our post model
+  let post = new Post(req.body, req.session.user._id)
+  post.create().then(function() {
+    // Here if the post was successfully created, what we actually want to do is, redirect the user to the new url for that post
+    // And maybe have a green success flash message that says New post successfuly created
+    res.send("<h1 style='color: green;'>New post created.</h1>")
+  }).catch(function(errors) {
+    // Here, we can imagine that when our promise rejects, it's gonna reject back with an array of errors, so within the parenthesis of this
+    // Function we will include a param named errors to receive that array
+    res.send(`<h1 style="color: red;">${errors}</h1>`)
+  })
 }
 
 // So if user is not logged in and visits create-post url, user should be redirected to the home page

@@ -30,6 +30,10 @@ router.post('/logout', userController.logout)
 // But if there is a user object within the session, we can just say next(), where we tell express to run next function on that route
 // So then express actually would call next function, but effectively only logged in users will effectively get there
 router.get('/create-post', userController.mustBeLoggedIn, postController.viewCreateScreen)
+// Okay, just to remind myself, userController.mustBeLoggedIn is used to protect the routes
+// So only logged in users can send the requests to following routes or in other words use those routes
+// They do send the requests anyway, just are unable to use them, well at least they can send GET requests 
+router.post('/create-post', userController.mustBeLoggedIn, postController.create)
 
 // We are exporting the router variable of ours, that's what we are exporting and making available to any file that requires in, this file
 // As I get it, we do this to make possible from the file where we require this router file to use the router functionalities
