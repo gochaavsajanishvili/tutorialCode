@@ -1,0 +1,36 @@
+<%- include('includes/header') %>
+  <!-- header ends here -->
+  
+  <div class="container py-md-5 container--narrow">
+    <div class="d-flex justify-content-between">
+      <h2><%= post.title %></h2>
+      <span class="pt-2">
+        <a href="#" class="text-primary mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fas fa-edit"></i></a>
+        <form class="delete-post-form d-inline" action="#" method="POST">
+          <button class="delete-post-button text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fas fa-trash"></i></button>
+        </form>
+      </span>
+    </div>
+      
+    <p class="text-muted small mb-4">
+      <!-- We will now format the output of raw date object here, if we first are interested in month, we say .getMonth() -->
+      <!-- Not a good insight, but in js, months are zero based, means January is 0 and February is 1 and etc so -->
+      <!-- To get around that we say .getMonth() + 1 and then we escape ejs dynamic mode and write / to format it in a way of 5/19/2022-->
+      <!-- We gotta call each date method in a separate dynamic mode if we want slashes between numbers, what a ugly stupid way to do it -->
+      <!-- I hope there is another way, okay so for day get call .getDate() and for year we call .getFullYear() -->
+      <!-- Pulling author from a database is going to be a bit more challenging, that is because, if we look at the document of the post -->
+      <!-- We aren't actually storing the authors username or gravatar, we're only storing the id of user account that authored the post -->
+      <!-- So, when we are looking up post documents in our post model we need to learn how to perform a second step of looking up -->
+      <!-- The relevant user document that is listed here as the author, we need to look up this matching user document to actually -->
+      <!-- Know its username and email to find its gravatar, well, luckily for us mongodb has a feature which will let us do exactly that -->
+      <a href="#"><img class="avatar-tiny" src="<%= user.avatar %>"></a>
+      Posted by <a href="#"><%= post.author %> </a> on <%= post.createdDate.getMonth() + 1 %>/<%= post.createdDate.getDate() %>/<%= post.createdDate.getFullYear() %>  </p>
+
+    <div class="body-content">
+      <p><%= post.body %></p>
+    </div>
+
+  </div>
+  
+  <!-- footer begins -->
+  <%- include('includes/footer') %>

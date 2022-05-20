@@ -44,6 +44,41 @@ exports.create = function(req, res) {
   })
 }
 
+// So now we want to pull out our posts from a database, also we want to put into url after /post/ an id of a given post
+// Which will be just random string of characters, so we will work out on a function which is called for a route like that
+exports.viewSingle = async function(req, res) {
+  // Before we render this template we're going to need to talk to our post model and request that it looks up a document in a database
+  // We know that it's gonna be async function that takes some time to complete, so we know that our post model is going to return a promise
+  // So we will include async before this parent function
+  try {
+    // And so far the pattern we were following would be to say a new instance of our blueprint or model, but in this case, because we are not
+    // Creating the post or updating a post or needing to validate anything, Brad not necessary likes the object oriented approach, instead
+    // Lets do the following, we are still gonna use our Post model, but lets just look inside it and pretend that we have a function
+    // Named findSingleById, there's nothing special about the name, Brad just made it up but he thinks it's aptly named, cuz we want to
+    // Load or find or retrieve a single post document and we want to find it by its id, so within the parenthesis, we would just wanna pass
+    // The final segment of whatever url the visitor is trying to visit, because that's the id of the single post they want to view, so how
+    // We are gonna access it, within our request object, express is going to have a params object, which is short for parameters and inside that
+    // We can just look for id, this part corresponds to the :id or that dynamic part we've set up for the router
+    // We will set up the following function in a way that it returns a promise, so right before it, we will include the word await
+    // This time, we are not taking an object oriented approach, we are not trying to create a new instance of a post based on the blueprint
+    let post = await Post.findSingleById(req.params.id)
+    // Here we want to render out the single post template, as second arg we want to include object of data that we want to pass into the template
+    // So we will include a property named post and set its value to our post variable
+    // Also we want to pull in an actual title and the actual created on date and an actual body content, so lets remind ourselves how we can do
+    // That, remember that when we are rednering this single-post-screen template, we're also passing a bit of data into it, we are passing a
+    // Property of post which is going to be the document from the database, because that's what above promise resolves to and that's what
+    // We are storing in the post variable
+    res.render('single-post-screen', {post: post})
+  } catch {
+    // We wouldn't want our promise to always resolve, sometimes we'd want it to reject, for example if someone typed in the url that didn't make
+    // Any sense, meaning they tried to include malicious code at the end of url, or they typed something in that no way looked like a mongodb id
+    // Or even if they do type something that looks like a mongodb id but it doesn't find any documents in our database, in any of those cases
+    // We would wanna our promise to reject, because it's not gonna find the post, so if it does down in our catch block, we can render 404 or
+    // Sorry we can't find what you're looking for a template
+    res.send("404 template will go here.")
+  }
+}
+
 // So if user is not logged in and visits create-post url, user should be redirected to the home page
 // With the red flash error message that says user must be logged in to perform that action
 // Now we could add that logic into our postController action here, but it is pretty common thing

@@ -34,6 +34,16 @@ router.get('/create-post', userController.mustBeLoggedIn, postController.viewCre
 // So only logged in users can send the requests to following routes or in other words use those routes
 // They do send the requests anyway, just are unable to use them, well at least they can send GET requests 
 router.post('/create-post', userController.mustBeLoggedIn, postController.create)
+// So we changed this route a bit, to make the url flexible we added :id, after colon we can choose any name but in this case we picked up id
+// It will represent whatever user includes after /post/
+// We won't bother to include mustBeLoggedIn function, because Brad wants a general public to be able to view a single post
+// The idea behind this application we are building is similar to blogging platform, so by default any posts you create are viewable to the public
+// Btw I've did router thing and postController thing and edited single-post-screen myself, before Brad told me how to B|
+// It's just few wordings were different and well I included here mustBeLoggedIn because of privacy in mind, hmm, I think I will still include it
+// So that I can use this app with my wife for fun but also be able to show to anybody, but I just realized that it's no use, cuz if user 
+// Then registers, he/she will still be able to see our posts, oh well, @TODO Figure out how to implement a feature where you can make your 
+// Acc private and only your followers approved by you can your posts, like on insta you know :d
+router.get('/post/:id', postController.viewSingle)
 
 // We are exporting the router variable of ours, that's what we are exporting and making available to any file that requires in, this file
 // As I get it, we do this to make possible from the file where we require this router file to use the router functionalities

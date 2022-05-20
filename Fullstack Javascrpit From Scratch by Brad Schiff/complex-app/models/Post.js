@@ -110,6 +110,54 @@ Post.prototype.create = function() {
   })
 }
 
+// We know that uppercase Post is a function, on top of this file, that's where we have our constructor function named Post
+// So how can we add properties or a function to a function, lets remember that in javascript a function is an object, just like
+// Any other object, meaning we can use its namespace or store properties in it by saying .propertyName, this is great because 
+// Now within our controller we can leverage uppercase post either as a constructor, from an object oriented perspective or we can
+// Just simply call a really simple function on it, now Brad says he didn't invent this strategy of being able to use a function in multiple
+// Ways like this, this setup is familiar to those who've ever used popular mongodb object modeling tool named mongoose, within our controller
+// We can leverage our mongoose model both to create new objects with it as a blueprint, but we can also call simple functions from it as well
+// Within parenthesis, we will receive the incoming id and within the body we want to return a promise
+Post.findSingleById = function(id) {
+  // Hmm, this time we are not using arrow function, because we are not interacting with this keyword, therefore not altering it
+  return new Promise( async function(resolve, reject) {
+    // Before we actually try to look any data up in our database lets first make sure that requested id makes sense and isn't malicious
+    // If typeof(id) doesn't equal string, meaning if user is trying to send an object or anything that's not just a simple string, that means
+    // they could be a malicious user trying to perform an injection attack, in other words, anytime we're going to use user inputted data
+    // To build a query in mongodb, we need to make sure that it's just simple string of text and not an object, in second condition
+    // We want to make sure that the incoming id is a valid mongodb object id, what is meant here is that, in mongodb the id for a document
+    // The unique string of characters, not only does it need to be a certain length but also only certain characters are allowed in there
+    // Is if the final segment of our url isn't even a valid mongodb id we don't need to waste a trip to our database, we can just immediately send
+    // A page not found message, so we say ObjectID.isValid(id), this would return true if it was a valid id so we will include an exclamation mark
+    // At the beginning of this to say if it's not a valid id, so in this if statement we say, if id isn't simple string of text or a valid id
+    // Not only we would want to reject this promise, but below that we would also want to return, cuz we want to prevent any further execution
+    // Of our function
+    if (typeof(id) != "string" || !ObjectID.isValid(id)) {
+      reject()
+      return
+    }
+    // If javascript ever gets to this point, that means we have an id value that we are safe to try and look up in our database
+    // So we create a variable and name it post and then we can just use a mongodb crud function, so we know that we can work with our collection
+    // Of post documents by using our postsCollection variable and lets look inside it for the method named findOne(), within those parenthesis
+    // We tell the mongo what we are trying to find, so lets give it an object and we want to find a document, where _id field has a value
+    // That matches the incoming requested id from the url, so we create new instance of the mongodb ObjectID and then we pass it requested id
+    let post = await postsCollection.findOne({_id: new ObjectID(id)})
+    // Here we write one more if statement, where we pass post variable because if above code finds the document, that's where it's gonna
+    // Resolve to, but if it doesn't find a document, then essentially that variable is going to be empty so the if condition will not evaluate to
+    // True, now we do need to be careful with timing of things, we don't want to execute ifelse, until the READ CRUD operation above has had
+    // A chance to actually resolve, now we know that above mongodb method is going to return a promise, so right at the start of it we can say
+    // Await, that way javascript will wait for the READ action to complete, before moving on to the next operation, but if we are going to use 
+    // Await, we need to be sure that we are inside async function, so we give a parent function an async keyword before it
+    if (post) {
+      // If we successfully found a post let's just have our promise resolve, with a value of that post document
+      resolve(post)
+    } else {
+      // If there is no post document for that id let's just reject
+      reject()
+    }
+  })
+}
+
 module.exports = Post
 
 // Okay so we've successfully submitted the post, means we saved it to the database, 
