@@ -75,7 +75,7 @@ exports.viewSingle = async function(req, res) {
     // Or even if they do type something that looks like a mongodb id but it doesn't find any documents in our database, in any of those cases
     // We would wanna our promise to reject, because it's not gonna find the post, so if it does down in our catch block, we can render 404 or
     // Sorry we can't find what you're looking for a template
-    res.send("404 template will go here.")
+    res.render('404')
   }
 }
 
