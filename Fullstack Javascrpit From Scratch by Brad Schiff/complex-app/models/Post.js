@@ -7,6 +7,7 @@ const postsCollection = require('../db').db().collection("posts")
 // Essentially it is a tool within mongodb package and we can pass it a simple string of text and it will return that as special objectId
 // object type so now we just need to leverage this back down where we are setting author to this.userid in cleanUp function
 const ObjectID = require('mongodb').ObjectId
+const User = require('./User')
 
 // This is the constructor function and that's what we want to ultimately export, now when our controller uses this constructor function
 // To create an object, remember we are passing along req.body which is going to be a form data, that was just submitted, so lets receive
@@ -141,16 +142,111 @@ Post.findSingleById = function(id) {
     // Of post documents by using our postsCollection variable and lets look inside it for the method named findOne(), within those parenthesis
     // We tell the mongo what we are trying to find, so lets give it an object and we want to find a document, where _id field has a value
     // That matches the incoming requested id from the url, so we create new instance of the mongodb ObjectID and then we pass it requested id
-    let post = await postsCollection.findOne({_id: new ObjectID(id)})
+
+    // To get the author and gravatar of author user to the post, we need to do something a bit more complex than just findOne()
+    // Hmm we deleted the part of the code but I will leave it here for future reference findOne({_id: new ObjectID(id)})
+    // Now instead of calling findOne() we want to call something called aggregate(), this method is great when we need to perform complex or
+    // Multiple operations, now aggregate is going to return data that makes sense from a mongodb perspective but maybe not just from a plain
+    // JavaScript perspective, so after the aggregate we wanna be sure to call .toArray(), now in this case we are interested in only a single
+    // Post but that's just the way .toArray() works, it's going to return array even if that array only contains one item
+    // Because we are only interested in the first item in the array, our instinct might be to include square brackets after
+    // .toArray() and say zero [0], however we don't wanna do that, ultimately we need this line of code to return a promise, because talking
+    // To the database is async operation and ultimately toArray() here is what's going to return a promise so we want to end the 
+    // Statement with that, also we want to change post to posts, because it's going to be an array of posts
+    // Now how does aggregate() work? aggregate() lets us run multiple operations so within its parenthesis we give it an array
+    // So we are passing an aggregate an array, but an array of what? Well, an array of database operations, each operation is an object
+    // For first operation we perform a match, so $match will tell mongodb, that that's what we wanna do, then we include an object
+    // And this is basically describing documents that we want to match with, so we're interested in a document, where _id matches the incoming
+    // Or requested id for this route or coming from our controller, that's our first operation, we are performing a match by the requested id
+    // Now we'll perform our second operation, so we use objects to do that as it seems, okay so currently we are within the postsCollection
+    // But what we wanted to do here is to look up documents from another collection, our ultimate goal here is to pull in the relevant user
+    // Account document so that we can access its username and email for gravatars, so within this object for $lookup, we're going to give
+    // Few different properties, first will be a property named from: and we set it to a value of "users", meaning the users collection,
+    // So again, we are currently in a posts collection and now we are saying that the document we want to lookup should be pulled from
+    // Users collection, as a second property we include localField: "author", so this is saying, when we are looking in the users collection
+    // For matching documents, the localField or the field from within the current post item, that we wanna perform that match on is the 
+    // Author field, thats what contains the id of the matching user, after this we include another property named foreignField:"_id"
+    // So local means the current collection, that's the post collection in this case and foreign means other collection, that we're trying
+    // To lookup within, the fields in those documents we want to perform the lookup or match on is the _id field, after that we include
+    // Property as: "" we could write/make up within quotes any name we want, but we will choose authorDocument, mongodb will use this name
+    // When it adds on a virtual field or property with the matching user document to this post, I got everything except as property
+    // But Brad said it's okay, we will visualize it later on and it will be much clearer, I'm gonna trust him on this one aand
+    // I wasn't bamboozeled, I really understood it now, so to authorDocument the whole matching document was added with all of its
+    // Properties, so the lookup operation is adding this new property to the returned object and it's an array of any matching documents
+    // Based on that lookup, it's an array of any user documents thats id matches this author id, now lets keep in mind that our aggregate()
+    // Operations aren't actually manipulating any data in the database, it's simply returning data that we can use however we want
+    // In this case we know that we want to use this data within our controller and ultimately our controller is just passing it on to an
+    // html or ejs template, what Brad is getting at is, that in case of html template, we don't need that to know the author id
+    // Instead we'd really just want the author property to be an object that contains the username and gravatar
+    // So our first step in order for that to happen is to use another aggregate operator named $project
+    // So right now we just have two items in our array of aggregate operations, so lets add third named $project
+    // So what $project does, is it to allow us to spell out exactly what fields we want the resulting object to have, this way, instead of
+    // Returning every single field for that document we have a bit of fine grain control on what we return
+    // So we know that we want to return the title of the post so we write title: 1, 1 means here true or yes do include it
+    // We do same for the following fields except for the author field, there we don't wanna just say 1, because that would just be what's
+    // Already stored in our post document, just a reference to the matching user id, instead we would want the user property to be that
+    // Author document, or the entire user document instead of just the id, so instead of 1 there, we can include an object and
+    // $arrayElemAt: ["$authorDocument", 0], now lets unpack this:
+    // So for this data that's ultimately going to get passed into our html template, we would want the author property to be an object
+    // With the user's username and the gravatar, so that's what we are setting it to with the authorDocument, that's the document
+    // That was found during the lookup, so mongodb will see the dollar sign there as the first letter of authorDocument and know
+    // That we don't just mean a simple string of text, this means to actually pull in that author document and remember that $lookup
+    // Is ultimately going to return an array, but because we know that there's only ever going to be one author document, we're just
+    // Returning the first item in that array, so we are interested in array element at 0 position, so this way author will not be an array
+    // It will be just that one single object representing that user, oh god, I can't believe I understand all this
+    // Okay now the author property, instead of just user id is an object and it contains useful things like username and email address
+    // That we can use to pull in the gravatar, however we don't need to pass this entire document to the controller, we would not want
+    // To include the password field there so we clean up author property below the line .toArray()
+    let posts = await postsCollection.aggregate([
+      {$match: {_id: new ObjectID(id)}},
+      {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
+      {$project: {
+        title: 1,
+        body: 1,
+        createdDate: 1,
+        author: {$arrayElemAt: ["$authorDocument", 0]}
+      }}
+    ]).toArray()
+
+    // Clean up author property in each post object
+    // Ultimately we know that we're going to have variable posts and it's going to be an array, in this case it's only going to contain
+    // Only one post, but let's write reusable code that we can leverage in the future, because we know that there will be other times
+    // Where we do want to pullin multiple posts, for example a user's home page feed or search results or user's profile
+    // So we are going work with our array of posts and set it to equal map(), and loop trhough each item in that array 
+    // Lets remember that map lets us return a new array, so essentially we are going to create new array based on posts array and 
+    // Then that new array that map generates is what we're ultimately going to save or overwrite into this posts variable
+    posts = posts.map(function(post) {
+      // We're just gonna customize or overwrite the author object, because we don't want to include things like users password
+      // So we will manually spell out what should be in this author object, so we know for sure that we want username and avatar
+      // Those are the only two properties that we want the author to have, now the question becomes, how can we use the user's
+      // Email address to pull in their gravatar url to avatar: property, we will just reuse our user model
+      // To do that, we first need to require into this file the user model, after that to author: property we create new instance
+      // Of that user model using our blueprint, in terms of what we wanna pass to construction function, we will just say post.author
+      // We also give another arg of true, Brad will explain this true soon
+      post.author = {
+        username: post.author.username,
+        // So this is going to return an object and because that getAvatar method ran, it's going to have property named avatar
+        avatar: new User(post.author, true).avatar
+      }
+
+      // Anything we do before this return, we are essentially manipulating the current item in the array
+      return post
+    })
+
     // Here we write one more if statement, where we pass post variable because if above code finds the document, that's where it's gonna
     // Resolve to, but if it doesn't find a document, then essentially that variable is going to be empty so the if condition will not evaluate to
     // True, now we do need to be careful with timing of things, we don't want to execute ifelse, until the READ CRUD operation above has had
     // A chance to actually resolve, now we know that above mongodb method is going to return a promise, so right at the start of it we can say
     // Await, that way javascript will wait for the READ action to complete, before moving on to the next operation, but if we are going to use 
     // Await, we need to be sure that we are inside async function, so we give a parent function an async keyword before it
-    if (post) {
+
+    // We've also added .length here to check if the array has more than zero items in it, then it evaluate to true
+    if (posts.length) {
       // If we successfully found a post let's just have our promise resolve, with a value of that post document
-      resolve(post)
+
+      // Now after turning post to array of posts we want to resolve into posts[0] to just return the first item in that array
+      console.log(posts[0])
+      resolve(posts[0])
     } else {
       // If there is no post document for that id let's just reject
       reject()

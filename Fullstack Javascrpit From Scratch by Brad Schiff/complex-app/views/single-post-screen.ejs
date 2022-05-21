@@ -23,8 +23,9 @@
       <!-- So, when we are looking up post documents in our post model we need to learn how to perform a second step of looking up -->
       <!-- The relevant user document that is listed here as the author, we need to look up this matching user document to actually -->
       <!-- Know its username and email to find its gravatar, well, luckily for us mongodb has a feature which will let us do exactly that -->
-      <a href="#"><img class="avatar-tiny" src="<%= user.avatar %>"></a>
-      Posted by <a href="#"><%= post.author %> </a> on <%= post.createdDate.getMonth() + 1 %>/<%= post.createdDate.getDate() %>/<%= post.createdDate.getFullYear() %>  </p>
+      <!-- We go to post model and then to findSingleById function -->
+      <a href="#"><img class="avatar-tiny" src="<%= post.author.avatar %>"></a>
+      Posted by <a href="#"><%= post.author.username %> </a> on <%= post.createdDate.getMonth() + 1 %>/<%= post.createdDate.getDate() %>/<%= post.createdDate.getFullYear() %>  </p>
 
     <div class="body-content">
       <p><%= post.body %></p>

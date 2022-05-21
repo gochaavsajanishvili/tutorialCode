@@ -24,9 +24,20 @@ const md5 = require('md5')
 // In other words we want to be able to leverage this function from within our userController file 
 // Here we add parameter data to receive the form field data passed from controller
 // Sadly, we cannot use arrow functions for defining constructor functions, that's why I was getting error of undefined
-let User = function(data) {
+
+// We added getAvatar param here in order to make this user model gravatar getting feature reusable for post as well and maybe
+// For other cases too, we will set things up in a way that if getAvatar param will be true, within the constructor function we just
+// Automatically call our getAvatar function, if it is false or if we call this constructor function without including second argument at all
+// We just won't automatically call that function
+let User = function(data, getAvatar) {
   this.data = data
   this.errors = []
+  // Here we mean that if we call constructor function and don't include second arg at all, getAvatar will be undefined
+  // So if that would be the case, we will provide default value of false
+  if (getAvatar == undefined) {getAvatar = false}
+  // But if getAvatar is true, then we will just call our getAvatar method, we know that it will automatically create a hash based on the
+  // Given user email and generate that gravatar url
+  if (getAvatar) {this.getAvatar()}
 }
 
 User.prototype.cleanUp = function() {
