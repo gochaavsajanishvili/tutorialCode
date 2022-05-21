@@ -302,5 +302,59 @@ User.prototype.getAvatar =  function() {
   this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`
 }
 
+// And again as we aren't taking object oriented approach here we don't need to add the function to the prototype, means make it a method of
+// A blueprint, we can literally just say User.findByUsername, we make it equal to function and within parenthesis we add param username
+// Because our controller is going to pass in whatever username is at the end of the url
+User.findByUsername = function(username) {
+  return new Promise(function(resolve, reject) {
+    // Lets first check to make sure that whatever's getting passed in as the username lets make sure it's just a string of text
+    // If malicious user tried to pass an object we would not want to pass that to mongodb so we check what type username param is
+    // And reject if it's not a string and return after that to prevent further execution of the function
+    if (typeof(username) != "string") {
+      reject()
+      return
+    }
+    // But if code reaches this point, then we know that username is just an innocent string of text, so we will query our database
+    // To see if there's a matching username document, so we use our usersCollection object and call its findeOne() method, within
+    // Its parenthesis we include an object and there we tell mongodb what we're trying to find, so we would wanna document where
+    // Username field matches whatever username value was at the end of the url
+    // If findOne() mongodb rejects, that doesn't mean that it couldn't find document, that means that it actually ran into some sort of error 
+    usersCollection.findOne({username: username}).then(function(userDoc) {
+      // If the mongodb operation is successful and resolves, well it will resolve with the data it found, so potentially a document
+      // So we can receive that in the .then() anonym function's parenthesis, so we will include a param there and call it a userDoc
+      // Here we check if userDoc isn't empty, if it exists then we would want our promise to resolve, but we actually want to resolve
+      // With the value within the resolve() parenthesis, because if we successfully found a user, our controller's going to want to save
+      // That user data onto the request object so that we can use it, so we could use it later to actually display the profile user's username
+      // And their avatar and also know their id so we can find posts written by them, now we could just resolve with the entire user document
+      // But that contains information like their password and even though it's value is hashed, it's a better practice to not let model
+      // Unnecessarily leak out or expose data that we really don't want it to into the controller
+      if (userDoc) {
+        // Here we will customize or cleanup the userDoc a bit, to prevent unnecessary data leakage to controller
+        // Oh wow, the code reusability makes impresses me everytime, so this way we're taking the raw data from database
+        // That has fields like username and email and we're using that to create a new user document and we're feeding that to our User()
+        // Blueprint and saying true, so remember that's going to automatically get the avatar based on their email address
+        userDoc = new User(userDoc, true)
+        // Here we will spellout the object bit by bit, so this way we aren't passing password or any other data into our controller
+        // So what we want it to have, we want _id so that later on in this request we can lookup posts by this user
+        // So these are the only three properties that are gonna be passed back into our controller, so within resolve() parenthesis we just include
+        // userDoc
+        userDoc = {
+          _id: userDoc.data._id,
+          username: userDoc.data.username,
+          avatar: userDoc.avatar
+        }
+        resolve(userDoc)
+      } else {
+        reject()
+      }
+    }).catch(function() {
+      // If findOne() ran into some sort of error, lets just reject, but technically this wouldn't be rejecting because we couldn't find the user
+      // It will be rejecting for some sort of unexpected technical error or database connection problem, or as far as end users of our application
+      // Are concerned they can just see a 404 screen for the time being
+      reject()
+    })
+  })
+}
+
 // We have to set export to then set up import of it <<< I don't know what the hell this means :d
 module.exports = User

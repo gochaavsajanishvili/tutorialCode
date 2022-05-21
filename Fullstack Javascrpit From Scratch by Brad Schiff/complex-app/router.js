@@ -21,7 +21,15 @@ router.post('/register', userController.register)
 router.post('/login', userController.login)
 router.post('/logout', userController.logout)
 
+// Profile related routes
+
+// We've added :username here to get and show the username in the url when visiting user profile
+// For repetition, after specifying route, we include the functions which we want to run for the given route
+// Now we specified two non-existent functions, but we will soon create them
+router.get('/profile/:username', userController.ifUserExists, userController.profilePostsScreen)
+
 // Post related routes
+
 // Express lets us run multiple functions in response to given route
 // So we add userController.mustBeLoggedIn function anywhere where we want the route to be
 // Restricted for not loggedin users

@@ -290,4 +290,33 @@ exports.home = (req, res) => {
   }
 }
 
+// So we want to pull in real relevant data into our template for whichever user we are looking for, we will divide that task up into two parts
+exports.ifUserExists = function(req, res, next) {
+  // We create the following function and pass it the username that's included at the end of current url, the following function is going to
+  // Return the promise, as it's gonna interact with the database, so at the end of it we can add .then().catch()
+  // If our promise resolves we can set it up so that it resolves with the value of the user document that it found in the database
+  // That matches the requested username, that will get passed in then()'s function so we will receive it with userDocument param
+  User.findByUsername(req.params.username).then(function(userDocument) {
+    // Here we will store that user document that we just found based on username, we will store it somewhere so that the next function for this
+    // Route can access it, we are talking about profilePostsScreen() function in this case, so what we can do is, create new property on the
+    // Request object, we can name it whatever we want but we will name it profileUser and we will just set that to equal the document we just found
+    req.profileUser = userDocument
+    // If we don't call this next function, the next function in router won't be called
+    next()
+  }).catch(function() {
+    // If findByUsername() fails that means there's no matching user in our database, so here we just want to render 404 or page not found screen
+    res.render('404')
+  })
+}
+
+exports.profilePostsScreen = function(req, res) {
+  // Second arg here is gonna be object of data that we pass in to this template
+  res.render('profile', {
+    // We can make up any property names we want and we're gonna leverage the data from our previous function, because we stored it on a
+    // Request object named profileUser
+    profileUsername: req.profileUser.username,
+    profileAvatar: req.profileUser.avatar
+  })
+}
+
 // @TODO why we have to require('express') in router.js and not here, maybe cuz we aren't using any express code here? idk, gotta check for sure
