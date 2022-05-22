@@ -1,7 +1,14 @@
 // ../ is how we move up one directory or folder
 // We will now learn how to create a javascript object using this blueprint or constructor function
-const { redirect } = require('express/lib/response')
+
+// I don't know from where this redirect code came from, I guess I pressed accidentally on something, but I will comment it out before it breaks
+// Anything :d
+// const { redirect } = require('express/lib/response')
 const User = require('../models/User')
+// We imported this to be able to get the list of posts of specific author when visiting its profile
+const Post = require('../models/Post')
+// I really don't get it from where this annoying lines come from, they really start to get on my nerves
+// const { render } = require('../app')
 
 // We already know what this next param is, but just to remind ourselves, with that function
 // We tell express that current route function is done and the next one can be leveraged
@@ -310,13 +317,38 @@ exports.ifUserExists = function(req, res, next) {
 }
 
 exports.profilePostsScreen = function(req, res) {
+  // Ask our post model for posts by a certain author id
+  // We will now get the list of posts authored by a specific user, because when we render the profile template, we're already passing it
+  // Relevant username and avatar values, but we're also going to want to pass it the actual list of posts for the current author
+  // Before we write the code to make it happen we want to go up to the top of this userController file and import or require in our post model
+  // Okay I get it, every time we talk to database we use promises as much as we can, or even always
+  // In post model we will create this function which returns the promise that eventually will resolve with the expected data from the database
+  // Btw within parenthesis of this function we want to pass the author id which we wanna look for 
+  Post.findByAuthorId(req.profileUser._id).then(function(posts) {
+    // Unless something super unexpected happens, the promise is going to resolve successfully, now when we set up this promise, we're going to
+    // Create it so that it resolves with a value, the value will be an array of posts, so we write within the params of current function posts
+    // Whatever the promise resolves with is going to get passed into this function and within the body of this function is where we actually
+    // Want to render our template so we move inside the rendering into here
+    res.render('profile', {
+      posts: posts,
+      profileUsername: req.profileUser.username,
+      profileAvatar: req.profileUser.avatar
+    })
+  }).catch(function() {
+    // If our promise rejected, so if the catch ran, it would have to be some unforseen or technical issue and we wouldn't want to show
+    // To the end user any sort of technical error message, so we will just render our 404 page, for the quick fix for now
+    res.render('404')
+  })
+
   // Second arg here is gonna be object of data that we pass in to this template
+  /*
   res.render('profile', {
     // We can make up any property names we want and we're gonna leverage the data from our previous function, because we stored it on a
     // Request object named profileUser
     profileUsername: req.profileUser.username,
     profileAvatar: req.profileUser.avatar
   })
+  */
 }
 
 // @TODO why we have to require('express') in router.js and not here, maybe cuz we aren't using any express code here? idk, gotta check for sure

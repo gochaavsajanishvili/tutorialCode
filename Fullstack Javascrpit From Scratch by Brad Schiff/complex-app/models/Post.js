@@ -111,6 +111,42 @@ Post.prototype.create = function() {
   })
 }
 
+// As we want to make this function reusable for the below two functions, we want to adjust the way we work with the aggregate options
+// We pass the array param uniqueOperations within parenthesis of this function
+Post.reusablePostQuery = function(uniqueOperations) {
+  return new Promise(async function(resolve, reject) {
+    // We set the aggregate operations variable to whatever array of operations was passed into this function and then we can use an
+    // Array method which every array in javascript has named .concat(), it is going to return new array and whatever we give it into its
+    // Parenthesis it's going to add that onto the original array, so we will move all of the previous aggregate operations within it's
+    // Parenthesis
+    let aggOperations = uniqueOperations.concat([
+      {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
+      {$project: {
+        title: 1,
+        body: 1,
+        createdDate: 1,
+        author: {$arrayElemAt: ["authorDocument", 0]}
+      }}
+    ])
+
+    // Now here after moving up from aggregate it's operations array to above concat() array method within it's parenthesis we will add
+    // aggOperations array, because that's going to take only unique parts and add on the shared or common parts, woow, will I ever be able
+    // To make my code this DRY?
+    let posts = await postsCollection.aggregate(aggOperations).toArray()
+
+    posts = posts.map(function(post) {
+      post.author = {
+        username: post.author.username,
+        avatar: new User(post.author, true).avatar
+      }
+
+      return post
+    })
+
+    resolve(posts)
+  })
+}
+
 // We know that uppercase Post is a function, on top of this file, that's where we have our constructor function named Post
 // So how can we add properties or a function to a function, lets remember that in javascript a function is an object, just like
 // Any other object, meaning we can use its namespace or store properties in it by saying .propertyName, this is great because 
@@ -137,6 +173,14 @@ Post.findSingleById = function(id) {
       reject()
       return
     }
+
+    // All we need to include within those parenthesis is the one part of the query that's unique, so we give it an array of aggregate operations
+    // In this case we only need one operation the match operation 
+    let posts = await Post.reusablePostQuery([
+      // Each operation is an object, we will match it based on the field we are interested in
+      {$match: {_id: new ObjectID(id)}}
+    ])
+
     // If javascript ever gets to this point, that means we have an id value that we are safe to try and look up in our database
     // So we create a variable and name it post and then we can just use a mongodb crud function, so we know that we can work with our collection
     // Of post documents by using our postsCollection variable and lets look inside it for the method named findOne(), within those parenthesis
@@ -197,6 +241,9 @@ Post.findSingleById = function(id) {
     // Okay now the author property, instead of just user id is an object and it contains useful things like username and email address
     // That we can use to pull in the gravatar, however we don't need to pass this entire document to the controller, we would not want
     // To include the password field there so we clean up author property below the line .toArray()
+    
+    // I multiline commented this code because we made this code reusable
+    /*
     let posts = await postsCollection.aggregate([
       {$match: {_id: new ObjectID(id)}},
       {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
@@ -232,6 +279,7 @@ Post.findSingleById = function(id) {
       // Anything we do before this return, we are essentially manipulating the current item in the array
       return post
     })
+    */
 
     // Here we write one more if statement, where we pass post variable because if above code finds the document, that's where it's gonna
     // Resolve to, but if it doesn't find a document, then essentially that variable is going to be empty so the if condition will not evaluate to
@@ -252,6 +300,18 @@ Post.findSingleById = function(id) {
       reject()
     }
   })
+}
+
+// This function is going to be dangerously similar to our findSingleById function, the only real difference between this two functions is that
+// One looks in the database for a match based on post id whereas the other would want to look in the database for a match where posts have a
+// Certain author id, so in order to maintain reusability and save our code from duplication, we will create a new function that both of these
+// Functions can leverage
+Post.findByAuthorId = function(authorId) {
+  // Now because in this case we are completely okay with returning an empty array of posts, because maybe an author doesn't have any posts yet
+  // Since that's the case, we don't need really any logic here, meaning, since our reusable function returns a promise, we can just return
+  // That reusable function, since it returns a function that's what this function is going to return, so ultimately our controller will still be
+  // Working with the promise when it calls this findByAuthorId function
+  return Post.reusablePostQuery()
 }
 
 module.exports = Post
