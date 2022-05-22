@@ -125,7 +125,7 @@ Post.reusablePostQuery = function(uniqueOperations) {
         title: 1,
         body: 1,
         createdDate: 1,
-        author: {$arrayElemAt: ["authorDocument", 0]}
+        author: {$arrayElemAt: ["$authorDocument", 0]}
       }}
     ])
 
@@ -311,7 +311,15 @@ Post.findByAuthorId = function(authorId) {
   // Since that's the case, we don't need really any logic here, meaning, since our reusable function returns a promise, we can just return
   // That reusable function, since it returns a function that's what this function is going to return, so ultimately our controller will still be
   // Working with the promise when it calls this findByAuthorId function
-  return Post.reusablePostQuery()
+  // Within parenthesis we want an array of aggregate operations so [], each operation should be an object so {}, we would wanna match with
+  // Author field, each post is gonna contain an author field with a matching id, so we're interested in any documents where that set to whatever
+  // Is getting passed into this function
+  return Post.reusablePostQuery([
+    {$match: {author: authorId}},
+    // We want to sort things so the newest posts are at the top, the most recent should come first, the field that we wanna sort by should be
+    // the createdDate and we can give it a value of 1 for ascending order or value of -1 for descending order, in this case, that's what we want
+    {$sort: {createdDate: -1}}
+  ])
 }
 
 module.exports = Post

@@ -25,7 +25,7 @@
           <!-- Okay so here we leveraged the gravatar icon in src for the image -->
   
           <!-- We added user to username here, because we made reusable the session data passing to templates  -->
-          <a href="#" class="mr-2"><img title="My Profile" data-toggle="tooltip" data-placement="bottom" style="width: 32px; height: 32px; border-radius: 16px;" src="<%= user.avatar %>"></a>
+          <a href="/profile/<%= user.username %>" class="mr-2"><img title="My Profile" data-toggle="tooltip" data-placement="bottom" style="width: 32px; height: 32px; border-radius: 16px;" src="<%= user.avatar %>"></a>
           <a class="btn btn-sm btn-success mr-2" href="/create-post">Create Post</a>
           <!-- So with this signout button we will destroy the current session, that's how we signout -->
           <!-- Poor sessions I will never signout from anything ever again to prevent the death of sessions -->
