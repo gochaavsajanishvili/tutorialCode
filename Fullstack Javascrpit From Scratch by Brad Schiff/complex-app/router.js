@@ -52,6 +52,7 @@ router.post('/create-post', userController.mustBeLoggedIn, postController.create
 // Then registers, he/she will still be able to see our posts, oh well, @TODO Figure out how to implement a feature where you can make your 
 // Acc private and only your followers approved by you can your posts, like on insta you know :d
 router.get('/post/:id', postController.viewSingle)
+router.get('/post/:id/edit', postController.viewEditScreen)
 
 // We are exporting the router variable of ours, that's what we are exporting and making available to any file that requires in, this file
 // As I get it, we do this to make possible from the file where we require this router file to use the router functionalities

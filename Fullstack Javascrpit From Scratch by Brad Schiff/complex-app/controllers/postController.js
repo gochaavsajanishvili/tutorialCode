@@ -61,7 +61,18 @@ exports.viewSingle = async function(req, res) {
     // We can just look for id, this part corresponds to the :id or that dynamic part we've set up for the router
     // We will set up the following function in a way that it returns a promise, so right before it, we will include the word await
     // This time, we are not taking an object oriented approach, we are not trying to create a new instance of a post based on the blueprint
-    let post = await Post.findSingleById(req.params.id)
+
+    // If we just include a second arg within these parenthesis that arg being the user id of the current visitor, then our model will have all
+    // Of the data it needs to determine if that user id is the same user id as the author for a given post, now if the current visitor is a guest
+    // Meaning they're not logged into any account then obviously they will not have a user id, so to set things up in a reusable and fail proof way
+    // We will set up a piece of code which will run at the start of every request and it will check to see if the current visitor has a user object
+    // In session data, if they do, we can grab their user id, if they don't we'll just consider their user id to be zero and that zero will signify
+    // That they're guest, so to setup something that will run for every request, we will jump in to our main app.js file
+
+    // When we are leveraging our post model and telling it to find a post let's just give this function a second arg here req.visitorId
+    // At this point our post model has everything it needs to determine if the visitor is the owner or author of the post
+    // With req.params.id we are telling it which post to look up for the current url and we're also telling it current visitorId
+    let post = await Post.findSingleById(req.params.id, req.visitorId)
     // Here we want to render out the single post template, as second arg we want to include object of data that we want to pass into the template
     // So we will include a property named post and set its value to our post variable
     // Also we want to pull in an actual title and the actual created on date and an actual body content, so lets remind ourselves how we can do
@@ -76,6 +87,24 @@ exports.viewSingle = async function(req, res) {
     // We would wanna our promise to reject, because it's not gonna find the post, so if it does down in our catch block, we can render 404 or
     // Sorry we can't find what you're looking for a template
     res.render('404')
+  }
+}
+
+exports.viewEditScreen = async function(req, res) {
+  // Here we need to ask our post model for the data for the relevant post, we'd need the existing title and body content so that user could
+  // Update or edit it and then after that we just wanna render the edit screen template
+  try {
+    // This function is going to return a promise and we wouldn't wanna render the template until we actually have this data, so we write await
+    // We can only use await feature within async function so we give async to parent function, also whatever value this promise is going
+    // To resolve to, is going to be the post we are interested in so we save whatever value this promise resolves with to post variable
+    // And then that's what we would wanna pass into our template, so the title of post and the body and etc
+    // We also should remember that this promise of ours is going to reject if it's not valid id that we are sending over, or if post
+    // Doesn't exist with that id so to account to that we will place this line and the render line into trycatch
+    let post = await Post.findSingleById(req.params.id)
+    
+    res.render("edit-post", {post: post})
+  } catch {
+    res.render("404")
   }
 }
 

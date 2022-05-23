@@ -1,0 +1,23 @@
+<%- include('includes/header') %>
+
+  <!-- Just to remember, we don't restrict yet all visitors to see this page because we want to restrict everybody except owner to be able -->
+  <!-- To submit this page to server and only after that feature we will hide this page from all other users except the owner of the post -->
+  <div class="container py-md-5 container--narrow">
+    <form action="/create-post" method="POST">
+      <div class="form-group">
+        <label for="post-title" class="text-muted mb-1"><small>Title</small></label>
+        <!-- Added value to input to be able to edit from this page, it needs to be added to attribute as it seems -->
+        <input required name="title" id="post-title" class="form-control form-control-lg form-control-title" type="text" placeholder="" autocomplete="off" value="<%= post.title %>">
+      </div>
+
+      <div class="form-group">
+        <label for="post-body" class="text-muted mb-1"><small>Body Content</small></label>
+        <!-- Added value but between textarea tags, that's how textarea works as it seems -->
+        <textarea required name="body" id="post-body" class="body-content tall-textarea form-control" type="text"><%= post.body %></textarea>
+      </div>
+      
+      <button class="btn btn-primary">Save Updates</button>
+    </form>
+  </div>
+  
+<%- include('includes/footer') %> 

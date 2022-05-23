@@ -113,7 +113,9 @@ Post.prototype.create = function() {
 
 // As we want to make this function reusable for the below two functions, we want to adjust the way we work with the aggregate options
 // We pass the array param uniqueOperations within parenthesis of this function
-Post.reusablePostQuery = function(uniqueOperations) {
+
+// Here we add second arg to receive the incoming visitorId
+Post.reusablePostQuery = function(uniqueOperations, visitorId) {
   return new Promise(async function(resolve, reject) {
     // We set the aggregate operations variable to whatever array of operations was passed into this function and then we can use an
     // Array method which every array in javascript has named .concat(), it is going to return new array and whatever we give it into its
@@ -125,6 +127,10 @@ Post.reusablePostQuery = function(uniqueOperations) {
         title: 1,
         body: 1,
         createdDate: 1,
+        // In mongodb if you include dollar sign within quotes it knows that you're talking about that actual field not a literal string of text
+        // So we are just making up a new property that's going to have that original author id value, so now we can leverage this within
+        // Our posts.map() area where we have post.isVisitorOwner
+        authorId: "$author",
         author: {$arrayElemAt: ["$authorDocument", 0]}
       }}
     ])
@@ -134,7 +140,22 @@ Post.reusablePostQuery = function(uniqueOperations) {
     // To make my code this DRY?
     let posts = await postsCollection.aggregate(aggOperations).toArray()
 
+    // clean up author property in each post object
+    // Within this map function we're already filtering the data or customizing it a bit, so it would be a great place to add on a property
+    // Under the post named isVisitorOwner and then we can just check to see if posts author id matches that passed in visitor id
+    // Omg I just realized how it feels to work with a huge project, I used to memorize every part of it when the projects were small
+    // But now I just can't do that because of it's size and I've felt really lost cuz of it, like I'm not getting it at all, or failing
+    // Somewhere, but it's not like that, if I do understand chunks of code, one by one and in general all of it, that means I understand it all
+    // Just can't memorize it so everything's alright, I feel calmer now and now I really understand the importance of comments here, awesome!
     posts = posts.map(function(post) {
+      // We need to pull in here an author id of the current post, however within our aggregate operations we've already changed what the author
+      // Property is going to ultimately return, originally it did contain the author id, but we changed it so it's going to be an object
+      // For the related user, to get around that what we can do is add the authorId property above author object
+      // We want this isVisitorOwner to be either true or false, so we write post.authorId which is mongodb object id, we can look inside it
+      // And call a method that it has named .equals() in these parentheses we can just give it something that we want to compare it against
+      // So we will just use the passed in visitorId, and now this equals() method will return a value of either true or false
+      post.isVisitorOwner = post.authorId.equals(visitorId)
+      
       post.author = {
         username: post.author.username,
         avatar: new User(post.author, true).avatar
@@ -155,7 +176,10 @@ Post.reusablePostQuery = function(uniqueOperations) {
 // Ways like this, this setup is familiar to those who've ever used popular mongodb object modeling tool named mongoose, within our controller
 // We can leverage our mongoose model both to create new objects with it as a blueprint, but we can also call simple functions from it as well
 // Within parenthesis, we will receive the incoming id and within the body we want to return a promise
-Post.findSingleById = function(id) {
+
+// Here we will add second param to receive the incoming visitor id, then when we use our reusablePostQuery() function the first arg is an array
+// Of aggregate options but we can just provide a second argument that's the visitor id
+Post.findSingleById = function(id, visitorId) {
   // Hmm, this time we are not using arrow function, because we are not interacting with this keyword, therefore not altering it
   return new Promise( async function(resolve, reject) {
     // Before we actually try to look any data up in our database lets first make sure that requested id makes sense and isn't malicious
@@ -175,11 +199,14 @@ Post.findSingleById = function(id) {
     }
 
     // All we need to include within those parenthesis is the one part of the query that's unique, so we give it an array of aggregate operations
-    // In this case we only need one operation the match operation 
+    // In this case we only need one operation the match operation
+
+    // When we use our reusablePostQuery() function the first arg is an array of aggregate options but we can just provide a 
+    // Second argument that's the visitor id, then we will go to our reusablePostQuery() function and actually leverage this visitorId
     let posts = await Post.reusablePostQuery([
       // Each operation is an object, we will match it based on the field we are interested in
       {$match: {_id: new ObjectID(id)}}
-    ])
+    ], visitorId)
 
     // If javascript ever gets to this point, that means we have an id value that we are safe to try and look up in our database
     // So we create a variable and name it post and then we can just use a mongodb crud function, so we know that we can work with our collection

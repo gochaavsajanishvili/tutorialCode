@@ -56,6 +56,13 @@ app.use(sessionOptions)
 app.use(flash())
 
 app.use(function(req, res, next) {
+  // make current user id available on the req object
+  // Here we again made up a property which we added to req object where we saved current user id and if user isn't logged in
+  // We make visitorId = 0, more about this is written in postController around line 70
+  // So now no matter which controller function we're in we can reliably know that there's going to be a visitorId property on a req object
+  // If the user's logged in, it will be actual id, if not it will be 0
+  if (req.session.user) {req.visitorId = req.session.user._id} else {req.visitorId = 0}
+  
   // We are now working with an object that will be available from within our ejs templates
   // So we can add any objects or properties we want on to this locals object
   // So altogether when we say app.use() we are telling express to run this function for every request
@@ -66,6 +73,8 @@ app.use(function(req, res, next) {
   // After that we update the templates to pull from this new user object (res.locals.user)
   // So we just added user. before the properties in templates, not so hard to remember but
   // I struggle to grasp the whole process a bit
+
+  // make user session data available from within view templates
   res.locals.user = req.session.user
   next()
 })
